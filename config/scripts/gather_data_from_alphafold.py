@@ -1,9 +1,7 @@
 from urllib import request
 import pandas as pd
 
-def gather_alphafold_data(CORRECT_IDS, filename_base="config/data/temp"):
-    save = False
-
+def gather_alphafold_data(CORRECT_IDS, filename_base="config/data/temp", save=False):
     all_data = []
     for id in CORRECT_IDS:
         url = f"https://alphafold.ebi.ac.uk/files/AF-{id}-F1-model_v2.cif"
