@@ -4,7 +4,12 @@ from check_alphafold import *
 def test_main():
     def test_alphafold():
         print("1. Test alphafold")
-        res = alphafold_verify(["B0BNG7", "B5R6I4", "XXXXXX"])
+        try:
+            res = alphafold_verify(["B0BNG7", "B5R6I4", "XXXXXX"],
+                                   file="../data/AlphaFold_metadata.txt")
+        except:
+            print("TECH ERROR - check dependencies and folder architecture.")
+            return False
         expected = ['B0BNG7', 'B5R6I4']
         if res == expected:
             return True
