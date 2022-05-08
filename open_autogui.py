@@ -3,7 +3,11 @@ import tkinter
 from tkinter import *
 from tkinter.ttk import *
 from tkinter import filedialog
-import time
+
+from config.scripts.check_alphafold import *
+from config.scripts.gather_data_from_alphafold import *
+from config.scripts.verify_input import *
+from config.scripts.version_control import *
 
 
 xsize = 800
@@ -22,29 +26,50 @@ def main_run_execution(data):
     scrollbar = Scrollbar(info_frame, orient="vertical")
     scrollbar.pack(side=RIGHT, fill=Y)
     text_box = Text(info_frame, height=20, state=DISABLED, yscrollcommand=scrollbar.set)
-    # scrollbar.configure(command=text_box.yview)
+    scrollbar.configure(command=text_box.yview)
     text_box.pack()
 
     run_frame = Frame(root)
     run_frame.pack(fill=BOTH, side=BOTTOM, padx=10)
-    progress_bar = Progressbar(run_frame, orient=HORIZONTAL, length=100, mode="determinate")
-    progress_bar.pack(expand=True, fill=X)
 
-    insert_message("a")
-    insert_message("a")
-    insert_message("a")
-    insert_message("a")
 
-    for i in range(100):
-        # progress_bar["value"] += 1
-        insert_message("b")
-        insert_message("b")
-        insert_message("b")
-        insert_message("b")
+    ver_check()
+    insert_message("Databse version checked.")
 
-    insert_message("c")
-    insert_message("c")
-    insert_message("c")
+    IDS = data[1]
+    FILES = data[0]
+    if FILES:
+        pass
+        # LOAD DATA FROM FILES - DUMP TO LIST
+        RES_UP = []
+        IDS.extend(RES_UP)
+
+
+    if not IDS:
+        insert_message("ERROR! No input detected! Make sure you picked correct files!")
+
+    insert_message("Data loaded.")
+
+    FAMILIES, PDB, UNIPROT = input_parse(IDS)
+    insert_message("Data types parsed.")
+
+    # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
+    RES_UP2 = [None, None]
+    insert_message("Verified input pt.1.")
+
+    ALPHA_IDS = alphafold_verify(RES_UP2)
+    insert_message("Verified input pt.2.")
+
+    gather_alphafold_data(ALPHA_IDS)
+    insert_message("Data collected.")
+
+    insert_message("Preparing summary")
+    SUMMARY_PATH = "test.html"
+    # PLOTS
+
+    # Generate summary
+    insert_message("Done.")
+    insert_message(f"Output summary generated in: {SUMMARY_PATH}")
 
 
 
@@ -83,18 +108,14 @@ def start_run():
         else:
             stan = False
     if len(list_of_files) > 0:
-        # root.destroy()
         start["state"] = "disabled"
         for i in list_of_files:
             base = i
-            to_search = []
             files = []
             IDs = []
             if os.path.exists(base):
-                print("FILE: ", base)
                 files.append(base)
             else:
-                print("ID: ", base)
                 IDs.append(base)
             to_search = [files, IDs]
             main_run_execution(to_search)

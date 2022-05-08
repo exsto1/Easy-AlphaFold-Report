@@ -1,5 +1,5 @@
-def input_parse(IDs):
-    with open("../data/Pfam-A.clans.tsv") as file_h:
+def input_parse(IDs, filepath0="config/data/Pfam-A.clans.tsv"):
+    with open(filepath0) as file_h:
         file = file_h.readlines()
 
     file = [i.rstrip().split("\t") for i in file]
@@ -32,10 +32,6 @@ def input_parse(IDs):
                 PDB.append(id)
             else:
                 uniprot_raw.append(id)
-
-    print(families)
-    print(PDB)
-    print(uniprot_raw)
 
     return families, PDB, uniprot_raw
 

@@ -1,5 +1,5 @@
-def alphafold_verify(UNI_IDs):
-    with open("../data/AlphaFold_metadata.txt") as file_h:
+def alphafold_verify(UNI_IDs, file="config/data/AlphaFold_metadata.txt"):
+    with open(file) as file_h:
         file = file_h.readlines()
         file = [i.split(",")[0] for i in file]
 

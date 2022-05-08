@@ -1,11 +1,13 @@
 from urllib import request
+import pandas as pd
 
-def gather_alphafold_data(CORRECT_IDS):
+def gather_alphafold_data(CORRECT_IDS, filename_base="config/data/temp"):
     save = False
 
+    all_data = []
     for id in CORRECT_IDS:
         url = f"https://alphafold.ebi.ac.uk/files/AF-{id}-F1-model_v2.cif"
-        filename = f"../data/temp/{id}.cif"
+        filename = f"{filename_base}/{id}.cif"
         data = request.urlopen(url).read()
         data = data.decode("utf-8")
 
@@ -18,7 +20,13 @@ def gather_alphafold_data(CORRECT_IDS):
         data = [i0.split(" ") for i0 in data]
         data = [[i0 for i0 in i if i0] for i in data]
         data = [float(i[4]) for i in data]
-        return data
+        all_data.append(data)
+
+    result = {"IDs": CORRECT_IDS, "pLDDT": all_data}
+    result = pd.DataFrame(data=result)
+
+    print(result)
+    return all_data
 
 
 if __name__ == '__main__':

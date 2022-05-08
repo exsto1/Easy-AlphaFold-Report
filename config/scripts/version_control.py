@@ -4,14 +4,16 @@ import gzip
 import os
 
 
-def ver_check():
+def ver_check(pf_version="config/other/Pfam.version",
+              p1gz="config/data/Pfam-A.clans.gz",
+              p1="config/data/Pfam-A.clans.tsv",
+              p2gz="config/other/Pfam.version.gz",
+              p2="config/other/Pfam.version"):
+
     def update_data():
         url1 = "http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.clans.tsv.gz"
         url2 = "http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam.version.gz"
-        p1gz = "../data/Pfam-A.clans.gz"
-        p1 = "../data/Pfam-A.clans.tsv"
-        p2gz = "../other/Pfam.version.gz"
-        p2 = "../other/Pfam.version"
+
 
         try:
             request.urlretrieve(url1, p1gz)
@@ -37,7 +39,7 @@ def ver_check():
         return
 
 
-    with open("../other/Pfam.version") as file_h:
+    with open(pf_version) as file_h:
         file = file_h.readlines()
         date_file = file[2].split(": ")[1].strip()
         date_file = datetime.strptime(date_file, "%Y-%m")
