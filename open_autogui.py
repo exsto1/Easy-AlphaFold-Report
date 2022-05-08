@@ -22,7 +22,7 @@ def main_run_execution(data):
     scrollbar = Scrollbar(info_frame, orient="vertical")
     scrollbar.pack(side=RIGHT, fill=Y)
     text_box = Text(info_frame, height=20, state=DISABLED, yscrollcommand=scrollbar.set)
-    scrollbar.configure(command=text_box.yview)
+    # scrollbar.configure(command=text_box.yview)
     text_box.pack()
 
     run_frame = Frame(root)
@@ -36,7 +36,7 @@ def main_run_execution(data):
     insert_message("a")
 
     for i in range(100):
-        progress_bar["value"] += 1
+        # progress_bar["value"] += 1
         insert_message("b")
         insert_message("b")
         insert_message("b")
