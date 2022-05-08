@@ -39,11 +39,9 @@ def main_run_execution(data):
     IDS = data[1]
     FILES = data[0]
     if FILES:
-        pass
-        # LOAD DATA FROM FILES - DUMP TO LIST
-        RES_UP = []
-        IDS.extend(RES_UP)
-
+        for path in FILES:
+            with open(path, "r") as ff:
+                IDS.extend(ff.read().strip().split("\n"))
 
     if not IDS:
         insert_message("ERROR! No input detected! Make sure you picked correct files!")
