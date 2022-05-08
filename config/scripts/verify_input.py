@@ -12,7 +12,7 @@ def input_parse(IDs, filepath0="config/data/Pfam-A.clans.tsv"):
     IDs = [i.lower() for i in IDs]
     for id in IDs:
         found_pfam = False
-        if id[:2] == "CL":
+        if id[:2] == "cl" and len(id) == 6:
             found_pfam = True
             families = []
             for row in file:

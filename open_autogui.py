@@ -50,6 +50,7 @@ def main_run_execution(data):
     insert_message("Data loaded.")
 
     FAMILIES, PDB, UNIPROT = input_parse(IDS)
+    print(FAMILIES, PDB, UNIPROT)
     insert_message("Data types parsed.")
 
     # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
