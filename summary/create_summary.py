@@ -1,4 +1,4 @@
-# Uruchamianie `python summary.py` (najpierw trzeba zainstalować potrzebne moduły)
+# Uruchamianie `python create_summary.py` (najpierw trzeba zainstalować potrzebne moduły)
 # widok: http://127.0.0.1:8051/ w przeglądarce
 
 
