@@ -35,7 +35,7 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
     ALPHA_IDS = alphafold_verify(RES_UP2)
     print("Verified input pt.2.")
 
-    gather_alphafold_data(ALPHA_IDS, save=download)
+    plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
     print("Data collected.")
 
     print("Preparing summary")
