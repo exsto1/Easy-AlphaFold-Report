@@ -29,9 +29,11 @@ def input_parse(IDs, filepath0="config/data/Pfam-A.clans.tsv"):
 
         if not found_pfam:
             if len(id) == 4:
-                PDB.append(id)
+                if id not in PDB:
+                    PDB.append(id)
             else:
-                uniprot_raw.append(id)
+                if id not in uniprot_raw:
+                    uniprot_raw.append(id)
 
     return families, PDB, uniprot_raw
 
