@@ -38,12 +38,11 @@ def main_run_execution(data):
 
     IDS = data[1]
     FILES = data[0]
-    if FILES:
-        pass
-        # LOAD DATA FROM FILES - DUMP TO LIST
-        RES_UP = []
-        IDS.extend(RES_UP)
 
+    if FILES:
+        for path in FILES:
+            with open(path, "r") as ff:
+                IDS.extend(ff.read().strip().split("\n"))
 
     if not IDS:
         insert_message("ERROR! No input detected! Make sure you picked correct files!")
@@ -72,8 +71,6 @@ def main_run_execution(data):
     insert_message(f"Output summary generated in: {SUMMARY_PATH}")
 
 
-
-
 def add_file():
     directory = filedialog.askopenfilenames()
     for i in directory:
@@ -82,7 +79,8 @@ def add_file():
 
 def add_id():
     id_from_entry = free_entry_box.get()
-    box.insert(END, id_from_entry)
+    if id_from_entry:
+        box.insert(END, id_from_entry)
 
 
 def add_id_bind(e):
@@ -109,16 +107,16 @@ def start_run():
             stan = False
     if len(list_of_files) > 0:
         start["state"] = "disabled"
+        files = []
+        IDs = []
         for i in list_of_files:
             base = i
-            files = []
-            IDs = []
             if os.path.exists(base):
                 files.append(base)
             else:
                 IDs.append(base)
-            to_search = [files, IDs]
-            main_run_execution(to_search)
+        to_search = [files, IDs]
+        main_run_execution(to_search)
 
 
 
