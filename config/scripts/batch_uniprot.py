@@ -57,7 +57,7 @@ def uniprot_to_file(pfam=None, pdb=None, uniprot=None):
         for i in chunk_uniprot:
             data += uniprot_dowlander(i, 'uniprot')
 
-    if data == heder:
+    if heder == len(data) :
         return False
 
     with open(path, "w") as ff:
