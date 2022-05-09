@@ -8,6 +8,7 @@ import argparse
 from config.scripts.check_alphafold import *
 from config.scripts.gather_data_from_alphafold import *
 from config.scripts.verify_input import *
+from config.scripts.batch_uniprot import *
 from config.scripts.version_control import *
 
 
@@ -27,6 +28,17 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
     FAMILIES, PDB, UNIPROT = input_parse(IDS)
     print(FAMILIES, PDB, UNIPROT)
     print("Data types parsed.")
+
+    uniprot_tsv = uniprot_to_file(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
+    if not uniprot_tsv:
+        print("Error: Empty report.")
+    else:
+        print("Uniprot report is ready.")
+
+    # Data from uniprot is stored in config/data/uniprot_data.tsv and
+    # in val uniprot_tsv (StringIO ready to open in pandas df)
+
+    # df = pd.read_csv(uniprot_tsv, sep="\t")
 
     # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
     RES_UP2 = [None, None]
