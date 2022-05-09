@@ -109,7 +109,7 @@ def main_gui():
         ALPHA_IDS = alphafold_verify(RES_UP2)
         insert_message("Verified input pt.2.")
 
-        gather_alphafold_data(ALPHA_IDS)
+        plddt_data = gather_alphafold_data(ALPHA_IDS)
         insert_message("Data collected.")
 
         insert_message("Preparing summary")
