@@ -57,7 +57,7 @@ def uniprot_to_file(pfam=None, pdb=None, uniprot=None):
         for i in chunk_uniprot:
             data += uniprot_dowlander(i, 'uniprot')
 
-    if heder == len(data) :
+    if heder == len(data):
         return False
 
     with open(path, "w") as ff:
@@ -67,12 +67,4 @@ def uniprot_to_file(pfam=None, pdb=None, uniprot=None):
 
 
 if __name__ == '__main__':
-    import pandas as pd
-    pdb = ["1GT3", "1CGT", "1TAF"]
-    pfam = ["PF12345", "PF32114", "PF65542"]
-    uniprot = ["P12345", "P32114", "P65542"]
-
-    test = uniprot_to_file(pfam=pfam, pdb=pdb, uniprot=uniprot)
-
-    df = pd.read_csv(test, sep="\t")
-    print(df.head())
+    pass

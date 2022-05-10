@@ -3,6 +3,7 @@ import tkinter
 from tkinter import *
 from tkinter.ttk import *
 from tkinter import filedialog
+import pandas as pd
 import argparse
 
 from config.scripts.check_alphafold import *
@@ -38,10 +39,10 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
     # Data from uniprot is stored in config/data/uniprot_data.tsv and
     # in val uniprot_tsv (StringIO ready to open in pandas df)
 
-    # df = pd.read_csv(uniprot_tsv, sep="\t")
+    df = pd.read_csv(uniprot_tsv, sep="\t")
 
     # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
-    RES_UP2 = [None, None]
+    RES_UP2 = df["Entry"].values.tolist()
     print("Verified input pt.1.")
 
     ALPHA_IDS = alphafold_verify(RES_UP2)
@@ -102,8 +103,19 @@ def main_gui():
         print(FAMILIES, PDB, UNIPROT)
         insert_message("Data types parsed.")
 
+        uniprot_tsv = uniprot_to_file(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
+        if not uniprot_tsv:
+            print("Error: Empty report.")
+        else:
+            print("Uniprot report is ready.")
+
+        # Data from uniprot is stored in config/data/uniprot_data.tsv and
+        # in val uniprot_tsv (StringIO ready to open in pandas df)
+
+        df = pd.read_csv(uniprot_tsv, sep="\t")
+
         # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
-        RES_UP2 = [None, None]
+        RES_UP2 = df["Entry"].values.tolist()
         insert_message("Verified input pt.1.")
 
         ALPHA_IDS = alphafold_verify(RES_UP2)
