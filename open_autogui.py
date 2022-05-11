@@ -39,7 +39,7 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
     # Data from uniprot is stored in config/data/uniprot_data.tsv and
     # in val uniprot_tsv (StringIO ready to open in pandas df)
 
-    df = pd.read_csv(uniprot_tsv, sep="\t")
+    df = pd.read_csv(uniprot_tsv, sep="\t") #dataframe do wykresów
 
     # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
     RES_UP2 = df["Entry"].values.tolist()
@@ -48,7 +48,7 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
     ALPHA_IDS = alphafold_verify(RES_UP2)
     print("Verified input pt.2.")
 
-    plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
+    plddt_data = gather_alphafold_data(ALPHA_IDS, save=download) #dataframe do wykresów
     print("Data collected.")
 
     print("Preparing summary")
@@ -112,7 +112,7 @@ def main_gui():
         # Data from uniprot is stored in config/data/uniprot_data.tsv and
         # in val uniprot_tsv (StringIO ready to open in pandas df)
 
-        df = pd.read_csv(uniprot_tsv, sep="\t")
+        df = pd.read_csv(uniprot_tsv, sep="\t") #dataframe do wykresów
 
         # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
         RES_UP2 = df["Entry"].values.tolist()
@@ -121,7 +121,7 @@ def main_gui():
         ALPHA_IDS = alphafold_verify(RES_UP2)
         insert_message("Verified input pt.2.")
 
-        plddt_data = gather_alphafold_data(ALPHA_IDS)
+        plddt_data = gather_alphafold_data(ALPHA_IDS) #dataframe do wykresów
         insert_message("Data collected.")
 
         insert_message("Preparing summary")
