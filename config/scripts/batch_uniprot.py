@@ -1,8 +1,7 @@
 import requests as r
-import sys
-if sys.version_info[0] < 3:
+try:
     from StringIO import StringIO
-else:
+except:
     from io import StringIO
 
 
@@ -30,6 +29,7 @@ def uniprot_dowlander(IDS: str, database_type: str):
             Url += f"%28accession%3A{ID}%29%20OR%20"
 
     Url = Url[:-8]
+    print(Url)
     response = r.get(Url)
     tsv_uniprot = response.content.decode()
 
@@ -37,7 +37,7 @@ def uniprot_dowlander(IDS: str, database_type: str):
 
 
 def uniprot_to_file(pfam=None, pdb=None, uniprot=None):
-    path = "config/data/uniprot_data.tsv"
+    path = "config/data/temp/uniprot_data.tsv"
     data = "Entry	Reviewed	Entry Name	Length	Pfam	PDB\n"
 
     heder = len(data)
