@@ -34,7 +34,7 @@ def alphafold_verify(UNI_IDs, file="config/data/alpha_fold_data.txt"):
         file = file_h.readlines()
     file = [i.rstrip() for i in file]
 
-    UNI_IDs = list(UNI_IDs.sort_values())
+    UNI_IDs.sort()
     UNI_IDs = [i for i in UNI_IDs if i]
     found_IDS = []
 
@@ -55,8 +55,9 @@ def alphafold_verify(UNI_IDs, file="config/data/alpha_fold_data.txt"):
 
     for i in data_file:
         for i1 in tqdm(range(len(data_file[i]))):
-            if data_file[i][i1] in data_ref[i]:
-                found_IDS.append(data_file[i][i1])
+            if i in data_ref:
+                if data_file[i][i1] in data_ref[i]:
+                    found_IDS.append(data_file[i][i1])
 
     print(found_IDS)
 
@@ -77,14 +78,8 @@ def alphafold_verify(UNI_IDs, file="config/data/alpha_fold_data.txt"):
 if __name__ == '__main__':
 
     # res = alphafold_verify(["B0BNG7", "B5R6I4", "XXXXXX"])
-    test_list = pd.read_csv("../data/temp/uniprot_data.tsv", sep="\t")["Entry"]
-    res = alphafold_verify(test_list, file="../../config/data/alpha_fold_data.txt")
+    # test_list = pd.read_csv("../data/temp/uniprot_data.tsv", sep="\t")["Entry"]
+    # res = alphafold_verify(test_list, file="../../config/data/alpha_fold_data.txt")
     # get_new_database_alpha()
-    prepare_file()
-    # pass
-
-    """
-    Lineage
-    Delete data with ["environmental samples", "unclassified sequences"] 
-    """
-
+    # prepare_file()
+    pass
