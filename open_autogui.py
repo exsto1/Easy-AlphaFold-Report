@@ -63,7 +63,6 @@ def main_gui():
     xsize = 800
     ysize = 500
 
-
     def main_run_execution(data):
         def insert_message(text):
             text_box.configure(state=NORMAL)
@@ -73,6 +72,8 @@ def main_gui():
         info_frame = Frame(root, height=150)
         info_frame.pack(fill=X, side=BOTTOM, padx=10, pady=5, expand=False)
         info_frame.propagate(False)
+        progress = Progressbar(info_frame, orient=HORIZONTAL, length=100, mode='determinate')
+        progress.pack(expand=True, fill=X)
         scrollbar = Scrollbar(info_frame, orient="vertical")
         scrollbar.pack(side=RIGHT, fill=Y)
         text_box = Text(info_frame, height=20, state=DISABLED, yscrollcommand=scrollbar.set)
@@ -81,10 +82,14 @@ def main_gui():
 
         run_frame = Frame(root)
         run_frame.pack(fill=BOTH, side=BOTTOM, padx=10)
-
+        root.update()
 
         ver_check()
         insert_message("Databse version checked.")
+        progress["value"] += 5
+        root.update()
+
+        # ------------------------------------------------------------------------------------------------------------
 
         IDS = data[1]
         FILES = data[0]
@@ -98,16 +103,22 @@ def main_gui():
             insert_message("ERROR! No input detected! Make sure you picked correct files!")
 
         insert_message("Data loaded.")
+        progress["value"] += 5
+        root.update()
+
+        # ------------------------------------------------------------------------------------------------------------
 
         FAMILIES, PDB, UNIPROT = input_parse(IDS)
-        print(FAMILIES, PDB, UNIPROT)
         insert_message("Data types parsed.")
 
         uniprot_tsv = uniprot_to_file(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
         if not uniprot_tsv:
-            print("Error: Empty report.")
-        else:
-            print("Uniprot report is ready.")
+            insert_message("Error: No IDs found. Please check your input and internet connection and try again.")
+            return
+        progress["value"] += 5
+        root.update()
+
+        # ------------------------------------------------------------------------------------------------------------
 
         # Data from uniprot is stored in config/data/uniprot_data.tsv and
         # in val uniprot_tsv (StringIO ready to open in pandas df)
@@ -118,41 +129,57 @@ def main_gui():
         RES_UP2 = df["Entry"].values.tolist()
 
         insert_message("Verified input pt.1.")
+        progress["value"] += 15
+        root.update()
 
-        print(RES_UP2)
+        # ------------------------------------------------------------------------------------------------------------
+        insert_message("Verifing AlphaFold data... Please be patient.")
+        root.update()
 
-        ALPHA_IDS = alphafold_verify(RES_UP2)
+        batch_size = 5000
+        ALPHA_IDS = []
+        tick = 50 / (len(RES_UP2) / batch_size)
+        for i in range(0, len(RES_UP2), batch_size):
+            ALPHA_IDS_temp = alphafold_verify(RES_UP2[i:i+batch_size])
+            ALPHA_IDS.extend(ALPHA_IDS_temp)
+            progress["value"] += tick
+            root.update()
+
         insert_message("Verified input pt.2.")
+        root.update()
 
-        print(ALPHA_IDS)
+        # ------------------------------------------------------------------------------------------------------------
 
         plddt_data = gather_alphafold_data(ALPHA_IDS)
         insert_message("Data collected.")
+        progress["value"] += 15
+        root.update()
+
+        # ------------------------------------------------------------------------------------------------------------
 
         insert_message("Preparing summary")
+        root.update()
+
         SUMMARY_PATH = "test.html"
         # PLOTS
 
         # Generate summary
+        progress["value"] += 5
         insert_message("Done.")
         insert_message(f"Output summary generated in: {SUMMARY_PATH}")
-
 
     def add_file():
         directory = filedialog.askopenfilenames()
         for i in directory:
             box.insert(END, i)
 
-
     def add_id():
         id_from_entry = free_entry_box.get()
         if id_from_entry:
             box.insert(END, id_from_entry)
 
-
     def add_id_bind(e):
         add_id()
-
 
     def remove_file():
         try:
@@ -161,19 +188,20 @@ def main_gui():
         except:
             pass
 
-
     def start_run():
-        list_of_files = []
-        stan = True
-        i = 0
-        while stan:
-            if box.get(i):
-                list_of_files.append(box.get(i))
-                i += 1
-            else:
-                stan = False
-        if len(list_of_files) > 0:
-            start["state"] = "disabled"
+        def get_data():
+            list_of_files = []
+            stan = True
+            i = 0
+            while stan:
+                if box.get(i):
+                    list_of_files.append(box.get(i))
+                    i += 1
+                else:
+                    stan = False
+            return list_of_files
+
+        def split_to_ID_file(list_of_files):
             files = []
             IDs = []
             for i in list_of_files:
@@ -183,9 +211,13 @@ def main_gui():
                 else:
                     IDs.append(base)
             to_search = [files, IDs]
+            return to_search
+
+        list_of_files = get_data()
+        if len(list_of_files) > 0:
+            start["state"] = "disabled"
+            to_search = split_to_ID_file(list_of_files)
             main_run_execution(to_search)
-
-
 
     root = Tk()
     root.geometry(f'{xsize}x{ysize}')
@@ -232,7 +264,7 @@ if __name__ == '__main__':
     parser.add_argument("-i", help="Input")
     parser.add_argument("-o", help="Output")
     parser.add_argument("-g", help="GUI [True]", action="store_false")
-    parser.add_argument("-d", help="Deonload [False]", action="store_true")
+    parser.add_argument("-d", help="Download [False]", action="store_true")
     args = parser.parse_args()
 
     input_path = args.i

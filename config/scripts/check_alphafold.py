@@ -3,13 +3,12 @@ import requests
 from tqdm import tqdm
 import pandas as pd
 
+
 def get_new_database_alpha():
     url = "http://ftp.ebi.ac.uk/pub/databases/alphafold/accession_ids.txt"
     # request.urlretrieve(url, "alpha_fold_new.txt")
 
     r = requests.get(url, stream=True)
-
-    print(r)
 
     with open("../data/alpha_fold_metadata.txt", 'wb') as fd:
         for chunk in r.iter_content(chunk_size=128):
@@ -25,8 +24,6 @@ def prepare_file(file="../../config/data/alpha_fold_metadata.txt"):
 
     with open("../../config/data/alpha_fold_data.txt", "w") as out:
         out.write("\n".join(file))
-
-
 
 
 def alphafold_verify(UNI_IDs, file="config/data/alpha_fold_data.txt"):
@@ -54,23 +51,10 @@ def alphafold_verify(UNI_IDs, file="config/data/alpha_fold_data.txt"):
             data_ref[file[i][0:prefix]].append(file[i])
 
     for i in data_file:
-        for i1 in tqdm(range(len(data_file[i]))):
+        for i1 in range(len(data_file[i])):
             if i in data_ref:
                 if data_file[i][i1] in data_ref[i]:
                     found_IDS.append(data_file[i][i1])
-
-    print(found_IDS)
-
-
-    # found_IDS = []
-    # current_index = 0
-    # for i in tqdm(range(current_index, len(UNI_IDs))):
-    #     if UNI_IDs[i] in file[current_index:]:
-    #         found_IDS.append(UNI_IDs[i])
-    #         current_index = file.index(UNI_IDs[i])
-    #         print(found_IDS)
-    #         break
-
 
     return found_IDS
 

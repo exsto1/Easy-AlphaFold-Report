@@ -29,7 +29,6 @@ def uniprot_dowlander(IDS: str, database_type: str):
             Url += f"%28accession%3A{ID}%29%20OR%20"
 
     Url = Url[:-8]
-    print(Url)
     response = r.get(Url)
     tsv_uniprot = response.content.decode()
 

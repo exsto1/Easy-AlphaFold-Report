@@ -1,9 +1,11 @@
 from urllib import request
 import pandas as pd
+from tqdm import tqdm
+
 
 def gather_alphafold_data(CORRECT_IDS, filename_base="config/data/temp", save=False):
     all_data = []
-    for id in CORRECT_IDS:
+    for id in tqdm(CORRECT_IDS):
         url = f"https://alphafold.ebi.ac.uk/files/AF-{id}-F1-model_v2.cif"
         filename = f"{filename_base}/{id}.cif"
         data = request.urlopen(url).read()
@@ -12,7 +14,6 @@ def gather_alphafold_data(CORRECT_IDS, filename_base="config/data/temp", save=Fa
         if save:
             with open(filename, "w") as outfile:
                 outfile.write(data)
-
 
         data = data.split("_ma_qa_metric_local.ordinal_id")[1].split("_ma_software_group.group_id    1")[0].split("\n")[1:-2]
         data = [i0.split(" ") for i0 in data]
