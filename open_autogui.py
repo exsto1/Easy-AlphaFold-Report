@@ -116,10 +116,15 @@ def main_gui():
 
         # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
         RES_UP2 = df["Entry"].values.tolist()
+
         insert_message("Verified input pt.1.")
+
+        print(RES_UP2)
 
         ALPHA_IDS = alphafold_verify(RES_UP2)
         insert_message("Verified input pt.2.")
+
+        print(ALPHA_IDS)
 
         plddt_data = gather_alphafold_data(ALPHA_IDS)
         insert_message("Data collected.")
