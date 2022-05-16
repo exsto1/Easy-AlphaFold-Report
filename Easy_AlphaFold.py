@@ -29,12 +29,17 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
     FAMILIES, PDB, UNIPROT = input_parse(IDS)
     print(FAMILIES, PDB, UNIPROT)
     print("Data types parsed.")
+    print("------------------------------------")
+    print(f"""Found data:
+    Pfam families provided   | {len(FAMILIES)}
+    PDB IDs provided         | {len(PDB)}
+    Uniprot IDs provided     | {len(UNIPROT)}
+    Found Uniprot IDs        | """, end="")
 
     uniprot_tsv = uniprot_to_file(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
     if not uniprot_tsv:
         print("Error: Empty report.")
-    else:
-        print("Uniprot report is ready.")
+        exit()
 
     # Data from uniprot is stored in config/data/uniprot_data.tsv and
     # in val uniprot_tsv (StringIO ready to open in pandas df)
@@ -43,15 +48,18 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
 
     # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
     RES_UP2 = df["Entry"].values.tolist()
-    print("Verified input pt.1.")
+
+    print(f"{len(RES_UP2)}\nFound AlphaFold IDs      | ", end="")
 
     ALPHA_IDS = alphafold_verify(RES_UP2)
-    print("Verified input pt.2.")
+
+    print(f""" {len(ALPHA_IDS)}\n
+    % of Uniprot IDS in AlphaFold | {len(ALPHA_IDS) / len(RES_UP2) * 100}
+    ------------------------------------
+    Gathering data and preparing summary...""")
 
     plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
-    print("Data collected.")
 
-    print("Preparing summary")
     # PLOTS
 
     # Generate summary
