@@ -5,6 +5,8 @@ from tkinter.ttk import *
 from tkinter import filedialog
 import pandas as pd
 import argparse
+from datetime import timedelta
+import threading
 
 from config.scripts.check_alphafold import *
 from config.scripts.gather_data_from_alphafold import *
@@ -14,8 +16,12 @@ from config.scripts.version_control import *
 
 
 def main_non_gui(input_p, SUMMARY_PATH, download):
+    print("""
+---+############################+---
+      ~~~~ Easy AlphaFold ~~~~       
+---+############################+---
+""")
     ver_check()
-    print("Databse version checked.")
 
     IDS = []
     with open(input_p, "r") as ff:
@@ -24,17 +30,28 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
     if not IDS:
         print("ERROR! No input detected! Make sure you picked correct files!")
 
-    print("Data loaded.")
 
     FAMILIES, PDB, UNIPROT = input_parse(IDS)
-    print(FAMILIES, PDB, UNIPROT)
-    print("Data types parsed.")
+    print(f"""Parameters
+Input file                     | {input_p}
+Output file                    | {output_path}
+Download                       | {download}""")
     print("------------------------------------")
     print(f"""Found data:
-Pfam families provided   | {len(FAMILIES)}
-PDB IDs provided         | {len(PDB)}
-Uniprot IDs provided     | {len(UNIPROT)}
-Found Uniprot IDs        | """, end="")
+Pfam families provided         | {len(FAMILIES)}
+PDB IDs provided               | {len(PDB)}
+Uniprot IDs provided           | {len(UNIPROT)}""")
+
+    Uni_number, single_time = uniprot_quick_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
+
+    if not Uni_number:
+        print("Error: No IDs found. Please check your input and internet connection and try again.")
+        return
+    td = str(timedelta(seconds=(Uni_number // 500) * single_time)).split(":")
+
+    print(f"Found Uniprot IDs              | {Uni_number}")
+    print(f"Uniprot pages                  | {(Uni_number // 500) + 1}")
+    print(f"Estimated time                 | {td[0]} Hours, {td[1]} Minutes, {td[2]} Seconds")
 
     Uni_data, Uni_state = uniprot_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
     if not Uni_state:
@@ -44,22 +61,21 @@ Found Uniprot IDs        | """, end="")
 
     Uni_IDs = Uni_data["Entry"].values.tolist()
 
-    print(f"{len(Uni_IDs)}\nFound AlphaFold IDs      | ", end="")
+    print(f"Found AlphaFold IDs            | ", end="")
 
     ALPHA_IDS = alphafold_verify(Uni_IDs)
 
-    print(f""" {len(ALPHA_IDS)}\n
-    % of Uniprot IDS in AlphaFold | {len(ALPHA_IDS) / len(Uni_IDs) * 100}
-    ------------------------------------
-    Gathering data and preparing summary...""")
+    print(f"""{len(ALPHA_IDS)}
+% of Uniprot IDS in AlphaFold  | {round(len(ALPHA_IDS) / len(Uni_IDs) * 100, 2)}
+------------------------------------
+Gathering data and preparing summary...""")
 
     plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
 
     # PLOTS
 
     # Generate summary
-    print("Done.")
-    print(f"Output summary generated in: {SUMMARY_PATH}")
+    print("Program finished!")
     
     
 def main_gui():
@@ -88,7 +104,6 @@ def main_gui():
         root.update()
 
         ver_check()
-        insert_message("Databse version checked.")
         progress["value"] += 5
         root.update()
 
@@ -105,51 +120,62 @@ def main_gui():
         if not IDS:
             insert_message("ERROR! No input detected! Make sure you picked correct files!")
 
-        insert_message("Data loaded.")
         progress["value"] += 5
         root.update()
 
         # ------------------------------------------------------------------------------------------------------------
 
         FAMILIES, PDB, UNIPROT = input_parse(IDS)
-        insert_message("Data types parsed.")
-
-        Uni_data, Uni_state = uniprot_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
-        if not Uni_state:
-            insert_message("Error: No IDs found. Please check your input and internet connection and try again.")
-            return
+        insert_message(f"Found data:")
+        insert_message(f"Pfam families provided         | {len(FAMILIES)}")
+        insert_message(f"PDB IDs provided               | {len(PDB)}")
+        insert_message(f"Uniprot IDs provided           | {len(UNIPROT)}")
+        insert_message("------------------------------------")
         progress["value"] += 5
         root.update()
+
+        Uni_number, single_time = uniprot_quick_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
+
+        if not Uni_number:
+            insert_message("Error: No IDs found. Please check your input and internet connection and try again.")
+            return
+        td = str(timedelta(seconds=(Uni_number // 500) * single_time)).split(":")
+        insert_message(f"Found Uniprot IDs              | {Uni_number}")
+        insert_message(f"Uniprot pages                  | {(Uni_number // 500) + 1}")
+        insert_message(f"Estimated time                 | {td[0]} Hours, {td[1]} Minutes, {td[2]} Seconds")
+
+        root.update()
+
+        Uni_data, Uni_state = uniprot_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
 
         # ------------------------------------------------------------------------------------------------------------
 
         Uni_IDs = Uni_data["Entry"].values.tolist()
 
-        insert_message("Verified input pt.1.")
+
         progress["value"] += 15
         root.update()
 
         # ------------------------------------------------------------------------------------------------------------
 
-        insert_message("Verifing AlphaFold data... Please be patient.")
-        root.update()
-
         batch_size = 5000
         ALPHA_IDS = []
-        tick = 50 / (len(Uni_IDs) / batch_size)
+        tick = 50 / ((len(Uni_IDs) // batch_size) + 1)
         for i in range(0, len(Uni_IDs), batch_size):
             ALPHA_IDS_temp = alphafold_verify(Uni_IDs[i:i+batch_size])
             ALPHA_IDS.extend(ALPHA_IDS_temp)
             progress["value"] += tick
             root.update()
 
-        insert_message("Verified input pt.2.")
+        insert_message(f"Found AlphaFold IDs            | {len(ALPHA_IDS)}")
+        insert_message(f"% of Uniprot IDS in AlphaFold  | {round(len(ALPHA_IDS) / len(Uni_IDs) * 100, 2)}")
         root.update()
 
         # ------------------------------------------------------------------------------------------------------------
 
         plddt_data = gather_alphafold_data(ALPHA_IDS)
-        insert_message("Data collected.")
+        insert_message("------------------------------------")
+        insert_message("Collecting data from AlphaFold")
         progress["value"] += 15
         root.update()
 
@@ -163,8 +189,9 @@ def main_gui():
 
         # Generate summary
         progress["value"] += 5
-        insert_message("Done.")
+        insert_message("Done!")
         insert_message(f"Output summary generated in: {SUMMARY_PATH}")
+        return
 
     def add_file():
         directory = filedialog.askopenfilenames()
@@ -252,7 +279,7 @@ def main_gui():
 
     remove_button = Button(text="Remove entry", command=remove_file).pack(in_=bottom3, side=LEFT)
 
-    start = Button(text="Start search", command=start_run)
+    start = Button(text="Start search", command=threading.Thread(target=start_run).start)
     start.pack(in_=bottom4, side=LEFT)
     root.mainloop()
 

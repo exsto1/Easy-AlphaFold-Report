@@ -1,5 +1,6 @@
 import pandas as pd
 import requests as r
+from time import time
 
 
 def split_list_into_chunks(IDS):
@@ -8,6 +9,60 @@ def split_list_into_chunks(IDS):
 
     result = [IDS[i:i + chunk_size] for i in range(0, len(IDS), chunk_size)]
     return result
+
+
+def quick_check_func(IDS, database_type):
+    Url = "https://rest.uniprot.org/uniprotkb/search?fields=accession%2Creviewed%2Clength%2Cxref_pfam%2Cxref_pdb%2Clineage&format=tsv&query="
+
+    if database_type == "pfam":
+        for ID in IDS:
+            Url += f"%28xref%3Apfam-{ID}%29%20OR%20"
+
+    elif database_type == "PDB":
+        for ID in IDS:
+            Url += f"%28xref%3Apdb-{ID}%29%20OR%20"
+
+    elif database_type == "uniprot":
+        for ID in IDS:
+            Url += f"%28accession%3A{ID}%29%20OR%20"
+
+    Url = Url[:-8]
+
+    Url += "&size=500"
+
+    s = time()
+    response = r.get(Url)
+    real_time = time() - s
+    try:
+        res_number = response.headers["x-total-records"]
+    except:
+        res_number = len(response.content.decode().split("\n")) - 1
+    return int(res_number), real_time
+
+
+def uniprot_quick_check(pfam=None, pdb=None, uniprot=None):
+    combined_number = 0
+    r_time = 0
+
+    if pfam:
+        chunk_pfam = split_list_into_chunks(pfam)
+        for i in chunk_pfam:
+            number, r_time = quick_check_func(i, 'pfam')
+            combined_number += number
+
+    if pdb:
+        chunk_pdb = split_list_into_chunks(pdb)
+        for i in chunk_pdb:
+            number, r_time = quick_check_func(i, 'PDB')
+            combined_number += number
+
+    if uniprot:
+        chunk_uniprot = split_list_into_chunks(uniprot)
+        for i in chunk_uniprot:
+            number, r_time = quick_check_func(i, 'uniprot')
+            combined_number += number
+
+    return combined_number, r_time
 
 
 def uniprot_downloader(IDS: str, database_type: str):
@@ -30,14 +85,20 @@ def uniprot_downloader(IDS: str, database_type: str):
     Url += "&size=500"
 
     response = r.get(Url)
-    new_url = response.headers["Link"].lstrip("<").split(">")[0]
+    new_url = ""
+    more_pages = True
+    try:
+        new_url = response.headers["Link"].lstrip("<").split(">")[0]
+    except:
+        more_pages = False
+
     tsv_uniprot = response.content.decode()
     tsv_uniprot = [i0.split("\t") for i0 in tsv_uniprot.split("\n") if i0]
 
     header = tsv_uniprot[0]
     all_data = tsv_uniprot[1:]
 
-    more_pages = True
+
     while more_pages:
         response = r.get(new_url)
         if "Link" in response.headers:
