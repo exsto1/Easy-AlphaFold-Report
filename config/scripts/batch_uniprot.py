@@ -14,7 +14,7 @@ def split_list_into_chunks(IDS):
 
 
 def uniprot_dowlander(IDS: str, database_type: str):
-    Url = "https://rest.uniprot.org/uniprotkb/stream?fields=accession%2Creviewed%2Cid%2Clength%2Cxref_pfam%2Cxref_pdb&format=tsv&query="
+    Url = "https://rest.uniprot.org/uniprotkb/search?fields=accession%2Creviewed%2Cid%2Clength%2Cxref_pfam%2Cxref_pdb%2Clineage&format=tsv&query="
 
     if database_type == "pfam":
         for ID in IDS:
@@ -37,7 +37,8 @@ def uniprot_dowlander(IDS: str, database_type: str):
 
 def uniprot_to_file(pfam=None, pdb=None, uniprot=None):
     path = "config/data/temp/uniprot_data.tsv"
-    data = "Entry	Reviewed	Entry Name	Length	Pfam	PDB\n"
+    # path = "../data/temp/uniprot_data.tsv" # test path
+    data = "Entry	Reviewed	Entry Name	Length	Pfam	PDB	Taxonomic lineage\n"
 
     heder = len(data)
 
