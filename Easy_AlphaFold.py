@@ -31,10 +31,10 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
     print("Data types parsed.")
     print("------------------------------------")
     print(f"""Found data:
-    Pfam families provided   | {len(FAMILIES)}
-    PDB IDs provided         | {len(PDB)}
-    Uniprot IDs provided     | {len(UNIPROT)}
-    Found Uniprot IDs        | """, end="")
+Pfam families provided   | {len(FAMILIES)}
+PDB IDs provided         | {len(PDB)}
+Uniprot IDs provided     | {len(UNIPROT)}
+Found Uniprot IDs        | """, end="")
 
     Uni_data, Uni_state = uniprot_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
     if not Uni_state:

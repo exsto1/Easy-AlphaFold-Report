@@ -48,7 +48,6 @@ def uniprot_downloader(IDS: str, database_type: str):
         tsv_uniprot = [i0.split("\t") for i0 in tsv_uniprot.split("\n")[1:] if i0]
         all_data.extend(tsv_uniprot)
 
-
     return all_data, header
 
 
