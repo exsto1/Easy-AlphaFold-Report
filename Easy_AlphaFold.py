@@ -36,27 +36,20 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
     Uniprot IDs provided     | {len(UNIPROT)}
     Found Uniprot IDs        | """, end="")
 
-    uniprot_tsv = uniprot_to_file(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
-    if not uniprot_tsv:
+    Uni_data, Uni_state = uniprot_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
+    if not Uni_state:
         print("Error: Empty report.")
         exit()
 
-    # Data from uniprot is stored in config/data/uniprot_data.tsv and
-    # in val uniprot_tsv (StringIO ready to open in pandas df)
 
-    df = pd.read_csv(uniprot_tsv, sep="\t")
-    df["first"] = df['Taxonomic lineage'].str.split(' \(').str[0]
-    df["superkingdom"] = df['Taxonomic lineage'].str.split(',').str[-2].str.split(" \(").str[0]
+    Uni_IDs = Uni_data["Entry"].values.tolist()
 
-    # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
-    RES_UP2 = df["Entry"].values.tolist()
+    print(f"{len(Uni_IDs)}\nFound AlphaFold IDs      | ", end="")
 
-    print(f"{len(RES_UP2)}\nFound AlphaFold IDs      | ", end="")
-
-    ALPHA_IDS = alphafold_verify(RES_UP2)
+    ALPHA_IDS = alphafold_verify(Uni_IDs)
 
     print(f""" {len(ALPHA_IDS)}\n
-    % of Uniprot IDS in AlphaFold | {len(ALPHA_IDS) / len(RES_UP2) * 100}
+    % of Uniprot IDS in AlphaFold | {len(ALPHA_IDS) / len(Uni_IDs) * 100}
     ------------------------------------
     Gathering data and preparing summary...""")
 
@@ -121,8 +114,8 @@ def main_gui():
         FAMILIES, PDB, UNIPROT = input_parse(IDS)
         insert_message("Data types parsed.")
 
-        uniprot_tsv = uniprot_to_file(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
-        if not uniprot_tsv:
+        Uni_data, Uni_state = uniprot_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
+        if not Uni_state:
             insert_message("Error: No IDs found. Please check your input and internet connection and try again.")
             return
         progress["value"] += 5
@@ -130,29 +123,22 @@ def main_gui():
 
         # ------------------------------------------------------------------------------------------------------------
 
-        # Data from uniprot is stored in config/data/uniprot_data.tsv and
-        # in val uniprot_tsv (StringIO ready to open in pandas df)
-
-        df = pd.read_csv(uniprot_tsv, sep="\t")
-        df["first"] = df['Taxonomic lineage'].str.split(' \(').str[0]
-        df["superkingdom"] = df['Taxonomic lineage'].str.split(',').str[-2].str.split(" \(").str[0]
-
-        # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
-        RES_UP2 = df["Entry"].values.tolist()
+        Uni_IDs = Uni_data["Entry"].values.tolist()
 
         insert_message("Verified input pt.1.")
         progress["value"] += 15
         root.update()
 
         # ------------------------------------------------------------------------------------------------------------
+
         insert_message("Verifing AlphaFold data... Please be patient.")
         root.update()
 
         batch_size = 5000
         ALPHA_IDS = []
-        tick = 50 / (len(RES_UP2) / batch_size)
-        for i in range(0, len(RES_UP2), batch_size):
-            ALPHA_IDS_temp = alphafold_verify(RES_UP2[i:i+batch_size])
+        tick = 50 / (len(Uni_IDs) / batch_size)
+        for i in range(0, len(Uni_IDs), batch_size):
+            ALPHA_IDS_temp = alphafold_verify(Uni_IDs[i:i+batch_size])
             ALPHA_IDS.extend(ALPHA_IDS_temp)
             progress["value"] += tick
             root.update()
