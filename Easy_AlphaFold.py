@@ -134,6 +134,8 @@ def main_gui():
         # in val uniprot_tsv (StringIO ready to open in pandas df)
 
         df = pd.read_csv(uniprot_tsv, sep="\t")
+        df["first"] = df['Taxonomic lineage'].str.split(' \(').str[0]
+        df["superkingdom"] = df['Taxonomic lineage'].str.split(',').str[-2].str.split(" \(").str[0]
 
         # PARSE DATA IN UNIPROT - GET ALL UNI IDS AND STATISTICS
         RES_UP2 = df["Entry"].values.tolist()
