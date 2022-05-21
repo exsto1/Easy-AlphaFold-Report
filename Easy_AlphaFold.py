@@ -54,6 +54,8 @@ Uniprot IDs provided           | {len(UNIPROT)}""")
     print(f"Estimated time                 | {td[0]} Hours, {td[1]} Minutes, {td[2]} Seconds")
 
     Uni_data, Uni_state = uniprot_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
+    Uni_data["PDB"] = Uni_data.apply(lambda row: [i for i in row["PDB"].split(";") if i], axis=1)
+
     if not Uni_state:
         print("Error: Empty report.")
         exit()
@@ -70,6 +72,89 @@ Uniprot IDs provided           | {len(UNIPROT)}""")
 ------------------------------------
 Gathering data and preparing summary...""")
 
+    count_found = 0
+    type_df_data = []
+
+    if FAMILIES:
+        fams = list(Uni_data["Pfam"].apply(tuple).unique())
+        print(fams)
+        for i in range(len(FAMILIES)):
+            found = False
+            for i1 in range(len(fams)):
+                if found:
+                    break
+                for i2 in range(len(fams[i1])):
+                    if FAMILIES[i] == fams[i1][i2].lower():
+                        count_found += 1
+                        type_df_data.append([FAMILIES[i], "Pfam"])
+                        found = True
+                        break
+            if not found:
+                type_df_data.append([FAMILIES[i], "None"])
+
+
+    if PDB:
+        PDBs = list(Uni_data["PDB"].apply(tuple).unique())
+        print(PDBs)
+        for i in range(len(PDB)):
+            found = False
+            for i1 in range(len(PDBs)):
+                if found:
+                    break
+                for i2 in range(len(PDBs[i1])):
+                    if PDB[i] == PDBs[i1][i2].lower():
+                        count_found += 1
+                        type_df_data.append([PDB[i], "PDB"])
+                        found = True
+                        break
+            if not found:
+                type_df_data.append([PDB[i], "None"])
+
+
+    if UNIPROT:
+        Unis = list(Uni_data["Entry"].unique())
+        print(Unis)
+        for i in range(len(UNIPROT)):
+            found = False
+            for i1 in range(len(Unis)):
+                if UNIPROT[i] == Unis[i1].lower():
+                    count_found += 1
+                    type_df_data.append([UNIPROT[i], "Uni"])
+                    found = True
+                    break
+
+            if not found:
+                type_df_data.append([UNIPROT[i], "None"])
+
+    """
+    -- extra_info
+    
+    [Pfam, PDB, Uniprot, Uniprot found, AlphaFold found, found from the input]
+    
+    -----------------------------------------
+    
+    -- type_df
+    
+    ID      | Base type
+    -------------------
+    ABCD    | PDB
+    XAXA    | None
+    PF01402 | Pfam
+    ABCDE   | Uni
+    
+    -----------------------------------------
+    
+    -- plddt_data
+    
+    ID    | pLDDT
+    ----------------
+    ABCDE | [12.34, 45.67, 67.78]
+    ABCDE | [12.34, 45.67, 67.78]
+    ABCDE | [12.34, 45.67, 67.78]
+    """
+
+    extra_info = [len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS), count_found]
+    type_df = pd.DataFrame(type_df_data, columns=["ID", "Database"])
     plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
 
     # PLOTS
@@ -178,6 +263,98 @@ def main_gui():
         insert_message("Collecting data from AlphaFold")
         progress["value"] += 15
         root.update()
+
+        """
+        "ID", "pLDDT"
+        ABCDE, [12.23, 95.56, 76.45,...]
+        ABCDE, [12.23, 95.56, 76.45,...]
+        ABCDE, [12.23, 95.56, 76.45,...]
+        ABCDE, [12.23, 95.56, 76.45,...]
+        """
+        # ------------------------------------------------------------------------------------------------------------
+
+        count_found = 0
+        type_df_data = []
+
+        if FAMILIES:
+            fams = list(Uni_data["Pfam"].apply(tuple).unique())
+            print(fams)
+            for i in range(len(FAMILIES)):
+                found = False
+                for i1 in range(len(fams)):
+                    if found:
+                        break
+                    for i2 in range(len(fams[i1])):
+                        if FAMILIES[i] == fams[i1][i2].lower():
+                            count_found += 1
+                            type_df_data.append([FAMILIES[i], "Pfam"])
+                            found = True
+                            break
+                if not found:
+                    type_df_data.append([FAMILIES[i], "None"])
+
+        if PDB:
+            PDBs = list(Uni_data["PDB"].apply(tuple).unique())
+            print(PDBs)
+            for i in range(len(PDB)):
+                found = False
+                for i1 in range(len(PDBs)):
+                    if found:
+                        break
+                    for i2 in range(len(PDBs[i1])):
+                        if PDB[i] == PDBs[i1][i2].lower():
+                            count_found += 1
+                            type_df_data.append([PDB[i], "PDB"])
+                            found = True
+                            break
+                if not found:
+                    type_df_data.append([PDB[i], "None"])
+
+        if UNIPROT:
+            Unis = list(Uni_data["Entry"].unique())
+            print(Unis)
+            for i in range(len(UNIPROT)):
+                found = False
+                for i1 in range(len(Unis)):
+                    if UNIPROT[i] == Unis[i1].lower():
+                        count_found += 1
+                        type_df_data.append([UNIPROT[i], "Uni"])
+                        found = True
+                        break
+
+                if not found:
+                    type_df_data.append([UNIPROT[i], "None"])
+
+        """
+        -- extra_info
+
+        [Pfam, PDB, Uniprot, Uniprot found, AlphaFold found, found from the input]
+
+        -----------------------------------------
+
+        -- type_df
+
+        ID      | Base type
+        -------------------
+        ABCD    | PDB
+        XAXA    | None
+        PF01402 | Pfam
+        ABCDE   | Uni
+
+        -----------------------------------------
+
+        -- plddt_data
+
+        ID    | pLDDT
+        ----------------
+        ABCDE | [12.34, 45.67, 67.78]
+        ABCDE | [12.34, 45.67, 67.78]
+        ABCDE | [12.34, 45.67, 67.78]
+        """
+
+        extra_info = [len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS), count_found]
+        type_df = pd.DataFrame(type_df_data, columns=["ID", "Database"])
+        # PLOTS
 
         # ------------------------------------------------------------------------------------------------------------
 

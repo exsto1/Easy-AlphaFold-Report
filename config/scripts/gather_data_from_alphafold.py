@@ -24,7 +24,7 @@ def gather_alphafold_data(CORRECT_IDS, filename_base="config/data/temp", save=Fa
     result = {"IDs": CORRECT_IDS, "pLDDT": all_data}
     result = pd.DataFrame(data=result)
 
-    return all_data
+    return result
 
 
 if __name__ == '__main__':
