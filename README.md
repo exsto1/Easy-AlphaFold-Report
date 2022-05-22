@@ -41,7 +41,7 @@ for PDB files).
 
 For the basic version with GUI user needs to simply run the main python script:
 ```
-python open_autogui.py
+python Easy_AlphaFold.py
 ```
 This should open an interactive window ready to use.
 
@@ -71,7 +71,7 @@ the same script as a base - but with manual flags:
 ## Folder architecture with descriptions
 ```
 Easy-AlphaFold-Report    
- ├─ open_autogui.py (main function)    
+ ├─ Easy_AlphaFold.py (main function)    
  ├─ README.md    
  └─ config     
      ├─ data
@@ -82,6 +82,8 @@ Easy-AlphaFold-Report
      │       └─ ... (temp files from Alphafold)
      │
      ├─ other
+     │   ├─ Test files
+     │   ├─ icon.png / icon.ico
      │   └─ Pfam.version
      │
      └─ scripts
