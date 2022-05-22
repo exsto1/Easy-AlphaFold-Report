@@ -1,5 +1,9 @@
-# Uruchamianie `python app.py` (najpierw trzeba zainstalować potrzebne moduły)
-# widok: http://127.0.0.1:8051/ w przeglądarce
+# Uruchamianie `python create_summary.py` (najpierw trzeba zainstalować potrzebne moduły)
+# widok: http://127.0.0.1:8052/ w przeglądarce
+
+### Maria -- uzupełniaj funkcje:
+#   build_uniprot_summary_section() -- podsumowanie z uniprot
+#   build_alphafold_summary_section() -- obrazki ze strukturami (to się okazuje w osobnej zakładce)
 
 
 from dash import Dash, html, dcc
@@ -8,68 +12,122 @@ import plotly.express as px
 import pandas as pd
 
 
+#################################################################
+#GENEROWANIE DANYCH DO TESTÓW
+from generate_test_data import generate_general_data, generate_pLDDT_data
+#################################################################
+# ARGUMENTY:
+# searching statistics --> [not_found_num, Pfam_ids_num, PDB_inds_num, Uniprot_ids_num, total_structures_found, alphafold_structures_num]
+# plddt_data --> ID: str | pLDDT: List(float)
+
+filename_or_queryname = "QUERY_0000"
+not_found, pfam, pdb, uniprot, total, alphafold = generate_general_data()
+plddt_data = generate_pLDDT_data() # for alphafold short summary
+
+#################################################################
+
+
+
+
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 
-# DANE
 
-## GeneralSection data
-input_cnt = 30
-valid_cnt = 28
+# DATA PREPROCESSING
 
-dfDatabases = pd.DataFrame({
-    "Database":["Pfam", "PDB", "Uniprot"],
-    "Count": [10,5,13]
-})
+from statistics import mean
+plddt_data.insert(loc=2, column="mean_plddt", value = list(map( mean, plddt_data["pLDDT"])))
+
+#converting plddt lists to dataframe ID | plddt_res_1  | ... | plddt res_n
+plddt_df =  pd.DataFrame(list(plddt_data["pLDDT"]))
+plddt_df.insert(0, 'IDs', plddt_data["IDs"])
+
+# dataframe with pldd residue-wise statistics | mean_plddt_per_residue | residues_total_cnt
+plddt_statistics = pd.DataFrame()
+plddt_statistics.insert(loc=0,column="mean_residue_plddt", value=plddt_df.iloc[:,1:].mean(axis=0))
+plddt_statistics.insert(loc=1,column="residues_count", value=plddt_df.iloc[:,1:].count(axis=0))
 
 
-## Pfam Section data
-df_domains = pd.DataFrame({
-    "Domain": ["A", "B", "C", "D", "E"],
-    "Occurences": [10, 17, 20, 1, 9],
-})
+# PREPARING DATA FOR PLOTS AND SUMMARIES
+query = filename_or_queryname #input id or name of input file
+
+entries_found = pfam +pdb + uniprot
+entries_total = entries_found + not_found  #number of id's in input file (1 if id was passed)
+structures_found = total #how many structures were found for given entries
+predictions_found = alphafold
+
+
+
 
 df_empty = pd.DataFrame({
     "x-data": [],
-    "y-data": [],
-})
-
-
-## AlphaFold Short data
-# przykład z palca a'la plddt
-import random
-import numpy
-
-random_float_array = numpy.random.uniform(30, 100, 1000)
-random_float_array = list(map(lambda x: round(x,2), random_float_array))
+    "y-data": [],})
 
 
 
 
-# WYKRESY
 
-## General
-db_pie = px.pie(dfDatabases, values="Count", names="Database", hole=0.1)
+# GENERATING PLOTS
 
-## Pfam domains
-pfam_domains = px.bar(df_domains, x="Domain", y="Occurences", barmode="group")
+## General Summary
+# databases counts pie-plot
+db_pie = px.pie(values=[pfam, pdb, uniprot], names=["Pfam", "PDB", "UniProt"], hole=0.1)
 
-## AlphaFold short
-#heatmap = px.imshow(..data.., color_continuous_scale='RdBu_r', origin='lower')
+
+## AlphaFold Short Summary
+#rozkład średniego plddt dla struktur (histogram) (i długości tych struktur) (może min i max do tego)
+plddt_means_histogram = px.histogram(plddt_data,
+                                    x="mean_plddt",
+                                    title="Mean pLDDT values in analyzed structures")
+plddt_means_histogram.update_xaxes(range=[round(min(plddt_data["mean_plddt"])-0.5,0) - 1, round(max(plddt_data["mean_plddt"])+0.5,0) + 1])
+plddt_means_histogram.update_yaxes(automargin=True)
+plddt_means_histogram.update_layout(
+                                xaxis = dict(
+                                    tickmode = 'linear',
+                                    tick0 = 0,
+                                    dtick = 1),
+                                xaxis_title="Mean structure pLDDT",
+                                yaxis_title="")
+
+
+#średnie plddt na pozycję w białku (czerwoną pionową linią odkreślone, dokąd sięgaja wszystkie białka; może podane, ile białek jest liczonych)
+mean_plddt_per_residue = px.line(plddt_statistics["mean_residue_plddt"],
+                                    markers=False,
+                                    title="Mean per-residue pLDDT values in analyzed structures")
+
+mean_plddt_per_residue.add_vline(
+                            x=plddt_statistics.index[plddt_statistics["residues_count"]==plddt_statistics["residues_count"][0]][-1],
+                            annotation_text="Length of the shortest protein",
+                            line_width=3,
+                            line_dash="dash",
+                            line_color="blue")
+
+mean_plddt_per_residue.update_layout(
+                            xaxis_title="Residue number",
+                            yaxis_title="Mean pLDDT",
+                            showlegend=False)
+
+
+#wykres przebiegu plddt dla residuów w białku o najlepszym średnim plddt (przy świrowaniu można zrobić custom dla każdej struktury)
+
+
+
+
 empty_plot = px.bar(df_empty, x="x-data", y="y-data", barmode="group")
 
 
 
 
-# ELEMENTY SKŁADOWE DO SEKCJI
 
-# GeneralSummary
+# SECTION COMPONENTS
+
+# section summary tabs
 general_cards = [
     dbc.Card(
         [
             html.P("Query:", className="card-text"),
-            html.H4(f"tu id albo nazwa pliku", className="card-title"),
+            html.H4(query, className="card-title"),
         ],
         body=True,
         color="dark",
@@ -78,8 +136,8 @@ general_cards = [
 
     dbc.Card(
         [
-            html.P("Entries total:", className="card-text"),
-            html.H4(f"{input_cnt}", className="card-title"),   
+            html.P("Identificators total:", className="card-text"),
+            html.H4(f"{entries_total}", className="card-title"),   
         ],
         body=True,
         color="light",
@@ -89,8 +147,8 @@ general_cards = [
 
     dbc.Card(
         [
-            html.P("Entries found:", className="card-text"),
-            html.H4(f" {valid_cnt} / {input_cnt} ", className="card-title"),
+            html.P("Identificators found:", className="card-text"),
+            html.H4(f" {entries_found} / {entries_total} ", className="card-title"),
             
         ],
         body=True,
@@ -131,44 +189,11 @@ uniprot_cards = [
         inverse=False,
     ),]
 
-pfam_cards = [
-    dbc.Card(
-        [
-            html.P("Total number of domains found:", className="card-text"),
-            html.H4(f"{10}", className="card-title"),
-        ],
-        body=True,
-        color="dark",
-        inverse=True,
-    ),
-
-    dbc.Card(
-        [
-            html.P("Higest occurence rate:", className="card-text"),
-            html.H4(f"{10}", className="card-title"),   
-        ],
-        body=True,
-        color="light",
-        inverse=False,
-    ),
-
-
-    dbc.Card(
-        [
-            html.P("Domains occurence statistics:", className="card-text"),
-            html.H4(f" ...tu proste podsumowania...  ", className="card-title"),
-            
-        ],
-        body=True,
-        color="light",
-        inverse=False,
-    ),]
-
 alphafold_short_cards = [
     dbc.Card(
         [
             html.P("Predictions found for:", className="card-text"),
-            html.H4(f"{6}/{10} structures", className="card-title"),
+            html.H4(f"{predictions_found}/{structures_found} structures", className="card-title"),
         ],
         body=True,
         color="dark",
@@ -177,8 +202,8 @@ alphafold_short_cards = [
 
     dbc.Card(
         [
-            html.P("Best mean pLDDT score:", className="card-text"),
-            html.H4(f"{90}", className="card-title"),   
+            html.P("Structure with higest mean pLDDT score:", className="card-text"),
+            html.H4(("IDDD: "+ str(round(plddt_data["mean_plddt"].max(),2))), className="card-title"),   
         ],
         body=True,
         color="light",
@@ -188,8 +213,8 @@ alphafold_short_cards = [
 
     dbc.Card(
         [
-            html.P("Worsst mean pLDDT score:", className="card-text"),
-            html.H4(f"{10}", className="card-title"), 
+            html.P("Structure with lowest mean pLDDT score:", className="card-text"),
+            html.H4(("IDDD:  "+ str(round(plddt_data["mean_plddt"].min(),2))), className="card-title"), 
             
         ],
         body=True,
@@ -202,9 +227,6 @@ alphafold_short_cards = [
 
 # SEKCJE 
 
-# Banner
-#todo:
-    #zmienić na bootstrap
 def build_banner():
     return html.Div(
         id="banner",
@@ -218,53 +240,62 @@ def build_banner():
             ),
             html.Br(),
             html.Div(
-                id="banner-logo",
+                id="download-button",
                 children=[
                     html.Button(
                         id="download-alphafold-button", children="DOWNLOAD AlphaFold predictions", n_clicks=0
                     ),
-                    html.P("guzik do potencjalnego pobrania plików ze strukturami; będzie ładniejszy i z prawej")
                 ],
             ),
         ],
     )
 
-# Tabs
-#todo:
-    #zmienić na bootstrap
+
 def build_tabs():
     return html.Div(
         id="tabs",
         className="tabs",
         children=[
+
+
             dcc.Tabs(
                 id="app-tabs",
-                value="tab2",
+                value="tab1",
                 className="custom-tabs",
                 children=[
                     dcc.Tab(
-                        id="summary-tab",
-                        label="Summary",
+                        id="general-summary-tab",
+                        label="General Summary",
                         value="tab1",
                         className="custom-tab",
                         selected_className="custom-tab--selected",
+                        children=[
+                            build_general_summary(),
+                            build_uniprot_summary_section(),
+                            build_alphafold_short_summary(),
+
+                        ],
                     ),
                     dcc.Tab(
                         id="alphafold_predictions",
                         label="AlphaFold Predictions",
                         value="tab2",
                         className="custom-tab",
-                        selected_className="custom-tab--selected",
+                        children =[
+                            build_alphafold_summary_section(),
+
+                        ],
                     ),
                 ],
             )
         ],
+
+
+
+
     )
 
-
-
-
-# SECTIONS
+# ====== general summary ======
 
 def build_general_summary():
     #wyświetlanie górnego podsumowania
@@ -272,15 +303,14 @@ def build_general_summary():
         id="general-summary",
         children =[
 
-            html.H3(f"Input Summary", className="card-title"),
+            html.H3(f"Input Statistics", className="card-title"),
             html.Hr(),
             dbc.Row([dbc.Col(card) for card in general_cards]),
             html.Br(),
             dbc.Container(
                 id='db-summary',
                 children = [
-                    html.H4('Entries type'),
-                    html.P('To będzie mniej rozstrzelone'),
+                    html.H4('Entries types'),
                     dcc.Graph(
                         id='db-summary-graph',
                         figure=db_pie
@@ -288,6 +318,7 @@ def build_general_summary():
             ]),
 
     ])
+
 
 
 def build_uniprot_summary_section():
@@ -307,8 +338,7 @@ def build_uniprot_summary_section():
                 id='uniprot-c1',
                 children = [
                     html.Br(),
-                    html.P("Sekcja z podsumowaniami danych o białkach z Uniprot. (robi Maria)"),
-                    html.H4('Tu bedą wykresy (w tej sekcji najwięcej)'),
+                    html.P("[Maria]"),
                     html.Br(),
                     dcc.Graph(
                         id='uniprot-graph1',
@@ -318,37 +348,6 @@ def build_uniprot_summary_section():
             )],
         )
 
-def build_pfam_domains_summary():
-    # ile domen współwystępujących 
-    # jaka częstość których (wykres obcięty do np. najczęstszych, jesli dużo)
-    return dbc.Container(
-        # total number of domains found  # higest occurence rate (rate and name) # Domains occurence statistics (min domains no max, mean, median)
-        id="pfam-domains-summary",
-        children =[
-
-            html.H3(f"Other Domains Found", className="card-title"),
-            html.Hr(),
-            dbc.Row([dbc.Col(card) for card in pfam_cards]),
-            html.Br(),
-            html.Br(),
-            dbc.Container(
-                id='pfam-domains-barplot',
-                children = [
-                    html.Br(),
-                    html.H4('Sekcja z podsumowaniami dotyczącymi występowania domen poza szukaną'),
-                    html.P("Podsumowania liczbowe i wykresy"),
-                    html.H4('Other domains frequency'),
-                    dcc.Graph(
-                        id='pfam-domains-graph',
-                        figure=pfam_domains
-                    )
-            ]),
-
-    ])
-
-
-
-
 
 def build_alphafold_short_summary():
     # najlepsza predykcja
@@ -356,25 +355,32 @@ def build_alphafold_short_summary():
     return dbc.Container(
         id="alpha-fold-short",
         children=[
-            html.H3(f"AlphaFold [short summary]", className="card-title"),
+            html.H3(f"AlphaFold short summary", className="card-title"),
             html.Hr(),
             dbc.Row([dbc.Col(card) for card in alphafold_short_cards]),
-            dbc.Container(
-                id='alph-c1',
+
+            dbc.Container(id='alphafold_mean_plddt',
                 children = [
                     html.Br(),
-                    html.H4("Tu dane z alphafold."),
-                    html.P("co chcemy tu pokazać? jaka wizualizacja plddt?"),
+                    html.H4("Mean pLDDT"),
                     dcc.Graph(
-                        figure=empty_plot
-                    ),
-                ],
-            )
+                        figure= plddt_means_histogram),
+                    ],
+                ),
+            dbc.Container(
+                        id='alphafold_mean_plddt_per_residue',
+                        children = [
+                            html.Br(),
+                            html.H4("pLDDT per residue"),
+                            dcc.Graph(
+                                figure= mean_plddt_per_residue),
+                            ],
+                        ),          
+
 
            
-        ]
+        ],)
 
-)
 
 
 
@@ -386,9 +392,7 @@ def build_alphafold_summary_section():
             html.H3(f"AlphaFold predictions gallery", className="card-title"),
             html.Hr(),
             html.Br(),
-            html.H4('To będzie w osobnej zakładce - sekcja z przeglądem top min{znalezione, n=const} struktur z alphafold'),
-            html.P("Struktury (i odnośniki?)"),
-            html.P("na górze opcja pobrania plików z ciffami / pdbami (zostaje?)"),
+            html.H4('[przegląd top predykcji z alphafold]'),
             html.Br(),
             dbc.Container(
                 
@@ -402,12 +406,6 @@ def build_alphafold_summary_section():
         ]
 
         )
-
-
-
-
-
-
 
 def build_example():
     return html.Div(children=[
@@ -431,7 +429,7 @@ def build_example():
 
 
 
-# WYGLĄD htmla
+# LAYOUT
 app.layout = dbc.Container(
     id="big-app-container",
     children=[
@@ -444,14 +442,7 @@ app.layout = dbc.Container(
             children=[
 
                 build_tabs(),
-                build_general_summary(),
-                build_uniprot_summary_section(),
-                build_pfam_domains_summary(),
-                build_alphafold_short_summary(),
-                build_alphafold_summary_section(),
 
-
-                #build_example(),
             ],
         ),
     ],
@@ -462,4 +453,8 @@ app.layout = dbc.Container(
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
+    app.run_server(debug=True, port=8052)
+
+
+
+
