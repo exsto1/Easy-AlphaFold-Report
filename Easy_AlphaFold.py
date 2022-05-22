@@ -458,6 +458,7 @@ def main_gui():
 
     start = Button(text="Start search", command=threading.Thread(target=start_run).start)
     start.pack(in_=bottom4, side=LEFT)
+    root.iconbitmap('./config/other/eaf_icon.ico')
     root.mainloop()
 
 
