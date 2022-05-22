@@ -1,4 +1,4 @@
-# Easy-AlphaFold-Report
+<h1><img src="./config/other/eaf_icon.png" width="100" height="100"> Easy-AlphaFold-Report  </h1>
 
 ## Members
 Maciej Sikora, Małgorzata Sudoł, Maria Bochenek, Kamil Pawlicki 
