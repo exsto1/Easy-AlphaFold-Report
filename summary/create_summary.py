@@ -194,8 +194,8 @@ general_cards = [
 uniprot_cards = [
     dbc.Card(
         [
-            html.P("Info 1", className="card-text"),
-            html.H4(f"info", className="card-title"),
+            html.P("Number of structures found", className="card-text"),
+            html.H4(f"{num_of_str}", className="card-title"),
         ],
         body=True,
         color="dark",
@@ -204,8 +204,8 @@ uniprot_cards = [
 
     dbc.Card(
         [
-            html.P("Info 2:", className="card-text"),
-            html.H4(f"info", className="card-title"),   
+            html.P("Percentage of reviewed structures", className="card-text"),
+            html.H4(f"{rev_perc}%", className="card-title"),   
         ],
         body=True,
         color="light",
@@ -215,8 +215,8 @@ uniprot_cards = [
 
     dbc.Card(
         [
-            html.P("Info 3:", className="card-text"),
-            html.H4(f"info", className="card-title"),
+            html.P("Average protein length:", className="card-text"),
+            html.H4(f"{round(avg_len, 2)}", className="card-title"),
             
         ],
         body=True,
