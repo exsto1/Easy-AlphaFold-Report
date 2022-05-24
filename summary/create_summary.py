@@ -111,6 +111,8 @@ mean_plddt_per_residue.update_layout(
 
 #wykres przebiegu plddt dla residuów w białku o najlepszym średnim plddt (przy świrowaniu można zrobić custom dla każdej struktury)
 
+#empty
+empty_plot = px.bar(df_empty, x="x-data", y="y-data", barmode="group")
 
 ### Uniprot summary 
 from generate_test_data import uniprot_data
@@ -125,7 +127,7 @@ rev_perc = (len(uniprot_data['Reviewed']=='reviewed')/len(uniprot_data['Reviewed
 avg_len = uniprot_data["Length"].mean()
 
 #lengths histogram
-#len_plot = px.bar(df_empty, x="x-data", y="y-data", barmode="group")
+
 len_plot = px.histogram(uniprot_data,
                                     x="Length",
                                     title="Protein length distibution")
@@ -146,13 +148,49 @@ from dash_bio.utils import PdbParser, create_mol3d_style
 from dash.dependencies import Input, Output
 
 structure_names = ['example_protein.cif', 'example_protein_2.cif'] #list with names of a stuctures
-parser = PdbParser('example_protein.cif')
-data = parser.mol3d_data()
-styles = create_mol3d_style(
-    data['atoms'], visualization_type='cartoon', color_element='residue'
+parser = [PdbParser(name) for name in structure_names]
+data = [p.mol3d_data() for p in parser]
+styles = [create_mol3d_style(
+    d['atoms'], visualization_type='cartoon', color_element='residue'
+) for d in data]
+
+app.layout = html.Div([
+    dashbio.Molecule3dViewer(
+        id='dashbio-default-molecule3d_1',
+        modelData=data[0],
+        styles=styles[0]
+
+    ),
+    "Selection data",
+    html.Hr(),
+    html.Div(id='default-molecule3d-output_1'), 
+
+    dashbio.Molecule3dViewer(
+        id='dashbio-default-molecule3d_2',
+        modelData=data[1],
+        styles=styles[1]
+
+    ),
+    "Selection data",
+    html.Hr(),
+    html.Div(id='default-molecule3d-output_2')
+])
+
+@app.callback(
+    Output('default-molecule3d-output_1', 'children'),
+    Input('dashbio-default-molecule3d_1', 'selectedAtomIds')
 )
 
-
+def show_selected_atoms(atom_ids):
+    if atom_ids is None or len(atom_ids) == 0:
+        return 'No atom has been selected. Click somewhere on the molecular \
+        structure to select an atom.'
+    return [html.Div([
+        html.Div('Element: {}'.format(data['atoms'][atm]['elem'])),
+        html.Div('Chain: {}'.format(data['atoms'][atm]['chain'])),
+        html.Div('Residue name: {}'.format(data['atoms'][atm]['residue_name'])),
+        html.Br()
+    ]) for atm in atom_ids]
 
 
 # SECTION COMPONENTS
@@ -377,7 +415,7 @@ def build_uniprot_summary_section():
                     html.Br(),
                     dcc.Graph(
                         id='uniprot-graph1',
-                        figure=len_plot
+                        figure=empty_plot
                     ),
                 ],
             )],
@@ -434,7 +472,7 @@ def build_alphafold_summary_section():
                 children = [
                     html.Br(),
                     dcc.Graph(
-                        figure=len_plot
+                        figure=empty_plot
                     ),
                 ],
             )
