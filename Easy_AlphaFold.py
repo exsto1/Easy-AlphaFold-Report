@@ -13,6 +13,7 @@ from config.scripts.gather_data_from_alphafold import *
 from config.scripts.verify_input import *
 from config.scripts.batch_uniprot import *
 from config.scripts.version_control import *
+from summary.summary import generate_summary
 
 
 def main_non_gui(input_p, SUMMARY_PATH, download):
@@ -158,6 +159,8 @@ Gathering data and preparing summary...""")
     plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
 
     # PLOTS
+
+    generate_summary(SUMMARY_PATH, extra_info, plddt_data)
 
     # Generate summary
     print("Program finished!")
@@ -345,14 +348,14 @@ def main_gui():
 
         -- plddt_data
 
-        ID    | pLDDT
+        IDs    | pLDDT
         ----------------
         ABCDE | [12.34, 45.67, 67.78]
         ABCDE | [12.34, 45.67, 67.78]
         ABCDE | [12.34, 45.67, 67.78]
         """
 
-        extra_info = [len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS), count_found]
+        extra_info = [count_found, len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS)]
         type_df = pd.DataFrame(type_df_data, columns=["ID", "Database"])
         # PLOTS
 
@@ -363,7 +366,7 @@ def main_gui():
 
         SUMMARY_PATH = "test.html"
         # PLOTS
-
+        generate_summary(SUMMARY_PATH, extra_info, plddt_data)
         # Generate summary
         progress["value"] += 5
         insert_message("Done!")
