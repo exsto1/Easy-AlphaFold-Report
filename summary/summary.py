@@ -13,8 +13,9 @@ def generate_summary(filename, searching_summary, plddt_data):
 
 
     # ARGUMENTY:
-    # searching_statistics --> [not_found_num, Pfam_ids_num, PDB_inds_num, Uniprot_ids_num, total_structures_found, alphafold_structures_num]
-    # plddt_data --> ID: str | pLDDT: List(float)
+    #filename --> nazwa pliku albo kod, który został podany przez użytkownika
+    # searching_summary --> [not_found_num, Pfam_ids_num, PDB_inds_num, Uniprot_ids_num, total_structures_found, alphafold_structures_num]
+    # plddt_data --> IDs: str | pLDDT: List(float)
 
     filename_or_queryname = filename
     not_found, pfam, pdb, uniprot, total, alphafold = searching_summary
