@@ -3,7 +3,7 @@
 
 
 
-def summary(filename, searching_summary, plddt_data):
+def generate_summary(filename, searching_summary, plddt_data):
 
     from dash import Dash, html, dcc
     import dash_bootstrap_components as dbc
