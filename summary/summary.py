@@ -1,8 +1,3 @@
-# Uruchamianie `python app.py` (najpierw trzeba zainstalować potrzebne moduły)
-# widok: http://127.0.0.1:8052/ w przeglądarce
-
-
-
 def generate_summary(filename, searching_summary, plddt_data):
 
     from dash import Dash, html, dcc
@@ -13,9 +8,9 @@ def generate_summary(filename, searching_summary, plddt_data):
 
 
     # ARGUMENTY:
-    #filename --> nazwa pliku albo kod, który został podany przez użytkownika
+    # filename --> nazwa wejściowego pliku lub wejściowy kod
     # searching_summary --> [not_found_num, Pfam_ids_num, PDB_inds_num, Uniprot_ids_num, total_structures_found, alphafold_structures_num]
-    # plddt_data --> IDs: str | pLDDT: List(float)
+    # plddt_data --> "IDs": str | "pLDDT": List(float)
 
     filename_or_queryname = filename
     not_found, pfam, pdb, uniprot, total, alphafold = searching_summary
@@ -46,35 +41,24 @@ def generate_summary(filename, searching_summary, plddt_data):
 
 
     # PREPARING DATA FOR PLOTS AND SUMMARIES
-    query = filename_or_queryname #input id or name of input file
-
+    query = filename_or_queryname
     entries_found = pfam +pdb + uniprot
-    entries_total = entries_found + not_found  #number of id's in input file (1 if id was passed)
-    structures_found = total #how many structures were found for given entries
+    entries_total = entries_found + not_found
+    structures_found = total
     predictions_found = alphafold
-
-
-
-
-    df_empty = pd.DataFrame({
-        "x-data": [],
-        "y-data": [],})
-
 
 
 
 
     # GENERATING PLOTS
 
-    ## General Summary
-
-    # databases counts pie-plot
+    ## General Summary Section
+    # databases counts
     db_pie = px.pie(values=[pfam, pdb, uniprot], names=["Pfam", "PDB", "UniProt"], hole=0.1)
 
 
-    ## AlphaFold Short Summary
-
-    #rozkład średniego plddt dla struktur (histogram) (i długości tych struktur) (może min i max do tego)
+    ## AlphaFold Short Summary Section
+    #mean plddt histogram
     plddt_means_histogram = px.histogram(plddt_data,
                                         x="mean_plddt",
                                         title="Mean pLDDT values in detected predictions")
@@ -90,9 +74,8 @@ def generate_summary(filename, searching_summary, plddt_data):
 
 
 
-    #(wykresy pudełkowe z plddt dla najlepszych 2 i najgorszych 2 struktur względem średniego plddt)
 
-    #średnie plddt na pozycję w białku (czerwoną pionową linią odkreślone, dokąd sięgaja wszystkie białka; może podane, ile białek jest liczonych)
+    # mean plddt per-position 
     mean_plddt_per_residue = px.line(list(map(lambda x: round(x,2), plddt_statistics["mean_residue_plddt"])),
                                         markers=False,
                                         title="Mean per-residue pLDDT in detected predictions")
@@ -108,7 +91,7 @@ def generate_summary(filename, searching_summary, plddt_data):
                                 showlegend=False)
 
 
-    #wykres przebiegu plddt dla residuów w białku o najlepszym średnim plddt (przy świrowaniu można zrobić custom dla każdej struktury)
+    # plddt-per residue for prediction with best plddt
     plddt_maxmean = plddt_data.iloc[plddt_data["mean_plddt"].idxmax()]["pLDDT"]
     plddt_maxstructure = px.line( list(map(lambda x: round(x,2), plddt_maxmean)),
                                     title="Prediction's per-residue pLDDT"
@@ -119,15 +102,11 @@ def generate_summary(filename, searching_summary, plddt_data):
                                 showlegend=False)
 
 
-    empty_plot = px.bar(df_empty, x="x-data", y="y-data", barmode="group")
-
-
 
 
 
     # SECTION COMPONENTS
-
-    # section summary tabs
+    # sections' summary tabs
     general_cards = [
         dbc.Card(
             [
@@ -248,7 +227,6 @@ def generate_summary(filename, searching_summary, plddt_data):
             ],
         )
 
-
     def build_tabs():
         return html.Div(
             id="tabs",
@@ -293,10 +271,8 @@ def generate_summary(filename, searching_summary, plddt_data):
 
         )
 
-    # ====== general summary ======
-
     def build_general_summary():
-        #wyświetlanie górnego podsumowania
+
         return dbc.Container(
             id="general-summary",
             children =[
@@ -312,18 +288,13 @@ def generate_summary(filename, searching_summary, plddt_data):
                         dcc.Graph(
                             id='db-summary-graph',
                             figure=db_pie
-                        )
+                        ),
                 ]),
-
         ])
 
 
 
     def build_uniprot_summary_section():
-        #   2.1. dla ilu/których znaleziono struktury krystalograficzne
-        #   2.2. rozdzielczość najlepszej struktury z krystalografii (i dla której ze struktur) / ew zestawienie jakości struktur eksperymentalnych
-        #   2.3 (długość/masa?)
-        #   2.4 ile (pojedynczo/średnio) mają różnych partnerów białkowych
         return dbc.Container(
             id="uniprot-summary",
             children=[
@@ -340,7 +311,6 @@ def generate_summary(filename, searching_summary, plddt_data):
                         html.Br(),
                         dcc.Graph(
                             id='uniprot-graph1',
-                            figure=empty_plot
                         ),
                     ],
                 )],
@@ -348,8 +318,6 @@ def generate_summary(filename, searching_summary, plddt_data):
 
 
     def build_alphafold_short_summary():
-        # najlepsza predykcja
-        # plddt
         return dbc.Container(
             id="alpha-fold-short",
             children=[
@@ -383,16 +351,13 @@ def generate_summary(filename, searching_summary, plddt_data):
                                     figure= plddt_maxstructure),
                                 ],
                             ),        
-
-
-               
+     
             ],)
 
 
 
 
     def build_alphafold_summary_section():
-        # przeglądanie top 50 struktur
         return dbc.Container(
             id="alpha-fold-predictions",
             children=[
@@ -406,33 +371,12 @@ def generate_summary(filename, searching_summary, plddt_data):
                     children = [
                         html.Br(),
                         dcc.Graph(
-                            figure=empty_plot
                         ),
                     ],
                 )
             ]
 
             )
-
-    def build_example():
-        return html.Div(children=[
-
-                    html.H1(children='General Summary'),
-
-                        #załącz wykres
-                        dcc.Graph(
-                            id='example-graph',
-                            figure=fig
-                        ),
-
-                        #załącz wykres
-                        dcc.Graph(
-                            id='databases_pieplot',
-                            figure=db_pie
-                        )
-                    ]
-                )
-
 
 
 
@@ -442,8 +386,6 @@ def generate_summary(filename, searching_summary, plddt_data):
         children=[
 
             build_banner(),
-
-            # Main report body
             dbc.Container(
                 id="app-container",
                 children=[
@@ -458,8 +400,4 @@ def generate_summary(filename, searching_summary, plddt_data):
 
 
 
-    app.run_server(debug=True, port=8052)
-
-
-
-
+    app.run_server(debug=False, port=8052)
