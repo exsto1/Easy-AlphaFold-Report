@@ -60,9 +60,9 @@ predictions_found = alphafold
 
 
 
-df_empty = pd.DataFrame({
-    "x-data": [],
-    "y-data": [],})
+# df_empty = pd.DataFrame({
+#     "x-data": [],
+#     "y-data": [],})
 
 
 
@@ -112,10 +112,45 @@ mean_plddt_per_residue.update_layout(
 #wykres przebiegu plddt dla residuów w białku o najlepszym średnim plddt (przy świrowaniu można zrobić custom dla każdej struktury)
 
 
+### Uniprot summary 
+from generate_test_data import uniprot_data
 
+#number structures found
+num_of_str = uniprot_data.shape[0]
 
-empty_plot = px.bar(df_empty, x="x-data", y="y-data", barmode="group")
+#percent of reviewed structures 
+rev_perc = (len(uniprot_data['Reviewed']=='reviewed')/len(uniprot_data['Reviewed']))*100
 
+#average protein length 
+avg_len = uniprot_data["Length"].mean()
+
+#lengths histogram
+#len_plot = px.bar(df_empty, x="x-data", y="y-data", barmode="group")
+len_plot = px.histogram(uniprot_data,
+                                    x="Length",
+                                    title="Protein length distibution")
+len_plot.update_xaxes(range=[round(min(uniprot_data["Length"])-0.5,0) - 1, round(max(uniprot_data["Length"])+0.5,0) + 1])
+len_plot.update_yaxes(automargin=True)
+len_plot.update_layout(
+                                xaxis = dict(
+                                    tickmode = 'linear',
+                                    tick0 = 0,
+                                    dtick = 1),
+                                xaxis_title="Protein length",
+                                yaxis_title="")
+
+### Alphafold structures
+import dash_bio as dashbio
+from dash import html
+from dash_bio.utils import PdbParser, create_mol3d_style
+from dash.dependencies import Input, Output
+
+structure_names = ['example_protein.cif', 'example_protein_2.cif'] #list with names of a stuctures
+parser = PdbParser('example_protein.cif')
+data = parser.mol3d_data()
+styles = create_mol3d_style(
+    data['atoms'], visualization_type='cartoon', color_element='residue'
+)
 
 
 
@@ -342,7 +377,7 @@ def build_uniprot_summary_section():
                     html.Br(),
                     dcc.Graph(
                         id='uniprot-graph1',
-                        figure=empty_plot
+                        figure=len_plot
                     ),
                 ],
             )],
@@ -399,7 +434,7 @@ def build_alphafold_summary_section():
                 children = [
                     html.Br(),
                     dcc.Graph(
-                        figure=empty_plot
+                        figure=len_plot
                     ),
                 ],
             )
