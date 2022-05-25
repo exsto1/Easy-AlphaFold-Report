@@ -46,7 +46,35 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
     entries_total = entries_found + not_found
     structures_found = total
     predictions_found = alphafold
+    
+    #Uniprot - summary
+    #number structures found
+    num_of_str = uniprot_data.shape[0]
 
+    #percent of reviewed structures 
+    rev_perc = (uniprot_data[uniprot_data['Reviewed']=='reviewed'].shape[0]/uniprot_data.shape[0])*100
+
+    #average protein length 
+    avg_len = uniprot_data["Length"].mean()
+    #Lineage data
+    lineage_data = uniprot_data[['Superkingdom', 'Genus']]
+    lineage_data = lineage_data.fillna('Unclassified')
+
+    lin_parents = []
+    lin_labels = []
+    lin_counts = []
+
+    groups_1 = lineage_data.groupby(['Superkingdom']).groups
+    for group in groups_1:
+        lin_parents.append("")
+        lin_labels.append(group)
+        lin_counts.append(len(groups_1[group]))
+    groups_2 = lineage_data.groupby(['Superkingdom', 'Genus']).groups
+    for group in groups_2: 
+        if group[0] != 'Unclassified':
+            lin_parents.append(group[0])
+            lin_labels.append(group[1])
+            lin_counts.append(len(groups_2[group]))
 
 
 
@@ -101,8 +129,28 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
                                 yaxis_title="pLDDT",
                                 showlegend=False)
 
+    
+    #protein length
+    len_plot = go.Figure()
+    len_plot.add_trace(go.Histogram(y=uniprot_data['Length']
+                         ))
 
+    len_plot.update_xaxes(automargin=True)
+    len_plot.update_yaxes(automargin=True)
+    len_plot.update_layout(title='Protein length distibution',yaxis_title="Number of amino acids", xaxis_title="Count")
 
+    
+    #Lineage - sunburst 
+    lineage_plot = go.Figure(go.Sunburst(
+        labels=lin_labels,
+        parents=lin_parents,
+        values=lin_counts,
+        branchvalues="total",
+    ))
+
+    lineage_plot.update_layout(
+        margin = dict(t=10, l=10, r=10, b=10)
+    )
 
 
     # SECTION COMPONENTS
@@ -143,8 +191,8 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
     uniprot_cards = [
         dbc.Card(
             [
-                html.P("Info 1", className="card-text"),
-                html.H4(f"info", className="card-title"),
+                html.P("Number of structures found", className="card-text"),
+                html.H4(f"{num_of_str}", className="card-title"),
             ],
             body=True,
             color="dark",
@@ -153,8 +201,8 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
 
         dbc.Card(
             [
-                html.P("Info 2:", className="card-text"),
-                html.H4(f"info", className="card-title"),   
+                html.P("Percentage of reviewed structures", className="card-text"),
+                html.H4(f"{round(rev_perc, 2)}%", className="card-title"),   
             ],
             body=True,
             color="light",
@@ -164,14 +212,15 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
 
         dbc.Card(
             [
-                html.P("Info 3:", className="card-text"),
-                html.H4(f"info", className="card-title"),
-                
+                html.P("Average protein length:", className="card-text"),
+                html.H4(f"{round(avg_len)}", className="card-title"),
+
             ],
             body=True,
             color="light",
             inverse=False,
         ),]
+
 
     alphafold_short_cards = [
         dbc.Card(
@@ -303,18 +352,30 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
                 dbc.Row([dbc.Col(card) for card in uniprot_cards]),
                 html.Br(),
                 html.Br(),
+                
                 dbc.Container(
-                    id='uniprot-c1',
+                    id='uniprot-length',
                     children = [
                         html.Br(),
-                        html.P("[Maria]"),
-                        html.Br(),
+                        html.H4("Protein lengths"),
                         dcc.Graph(
-                            id='uniprot-graph1',
-                        ),
-                    ],
-                )],
-            )
+                            id='uniprot-len',
+                            figure=len_plot
+                            ),
+                        ],
+                    ),
+                dbc.Container(
+                    id='uniprot-lineage',
+                    children = [
+                        html.Br(),
+                        html.H4("Lineage of the protein structures"),
+                        dcc.Graph(
+                            id='uniprot-lin',
+                            figure=lineage_plot
+                            ),
+                        ],
+                    ),   
+            ],)
 
 
     def build_alphafold_short_summary():
