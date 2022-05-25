@@ -154,7 +154,7 @@ Gathering data and preparing summary...""")
     ABCDE | [12.34, 45.67, 67.78]
     """
 
-    extra_info = [len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS), count_found]
+    extra_info = [count_found, len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS)]
     type_df = pd.DataFrame(type_df_data, columns=["ID", "Database"])
     plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
     
