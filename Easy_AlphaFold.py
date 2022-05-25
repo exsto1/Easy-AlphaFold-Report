@@ -157,10 +157,10 @@ Gathering data and preparing summary...""")
     extra_info = [len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS), count_found]
     type_df = pd.DataFrame(type_df_data, columns=["ID", "Database"])
     plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
-
+    
     # PLOTS
 
-    generate_summary(SUMMARY_PATH, extra_info, plddt_data)
+    generate_summary(SUMMARY_PATH, extra_info, plddt_data, Uni_data)
 
     # Generate summary
     print("Program finished!")
@@ -366,7 +366,7 @@ def main_gui():
 
         SUMMARY_PATH = "test.html"
         # PLOTS
-        generate_summary(SUMMARY_PATH, extra_info, plddt_data)
+        generate_summary(SUMMARY_PATH, extra_info, plddt_data, Uni_data)
         # Generate summary
         progress["value"] += 5
         insert_message("Done!")
