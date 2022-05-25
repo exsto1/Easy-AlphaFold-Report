@@ -38,32 +38,22 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
     plddt_statistics = pd.DataFrame()
     plddt_statistics.insert(loc=0,column="mean_residue_plddt", value=plddt_df.iloc[:,1:].mean(axis=0))
     plddt_statistics.insert(loc=1,column="residues_count", value=plddt_df.iloc[:,1:].count(axis=0))
-
-
-    # PREPARING DATA FOR PLOTS AND SUMMARIES
-    query = filename_or_queryname
-    entries_found = pfam +pdb + uniprot
-    entries_total = entries_found + not_found
-    structures_found = total
-    predictions_found = alphafold
     
-    #Uniprot - summary
-    #number structures found
+    #number of uniprot structures found
     num_of_str = uniprot_data.shape[0]
-
     #percent of reviewed structures 
     rev_perc = (uniprot_data[uniprot_data['Reviewed']=='reviewed'].shape[0]/uniprot_data.shape[0])*100
-
     #average protein length 
     avg_len = uniprot_data["Length"].mean()
-    #Lineage data
+    
+    #lineage data
     lineage_data = uniprot_data[['Superkingdom', 'Genus']]
     lineage_data = lineage_data.fillna('Unclassified')
-
+    
     lin_parents = []
     lin_labels = []
     lin_counts = []
-
+    
     groups_1 = lineage_data.groupby(['Superkingdom']).groups
     for group in groups_1:
         lin_parents.append("")
@@ -76,8 +66,13 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
             lin_labels.append(group[1])
             lin_counts.append(len(groups_2[group]))
 
-
-
+    # PREPARING DATA FOR PLOTS AND SUMMARIES
+    query = filename_or_queryname
+    entries_found = pfam +pdb + uniprot
+    entries_total = entries_found + not_found
+    structures_found = total
+    predictions_found = alphafold
+    
     # GENERATING PLOTS
 
     ## General Summary Section
