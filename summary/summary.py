@@ -1,4 +1,4 @@
-def generate_summary(filename, searching_summary, plddt_data):
+def generate_summary(filename, searching_summary, plddt_data, Uni_data):
 
     from dash import Dash, html, dcc
     import dash_bootstrap_components as dbc
@@ -15,7 +15,7 @@ def generate_summary(filename, searching_summary, plddt_data):
     filename_or_queryname = filename
     not_found, pfam, pdb, uniprot, total, alphafold = searching_summary
     plddt_data = plddt_data
-
+    uniprot_data = Uni_data
 
 
 
