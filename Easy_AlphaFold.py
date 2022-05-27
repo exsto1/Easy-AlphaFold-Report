@@ -295,9 +295,9 @@ def main_gui():
                             break
                 if not found:
                     type_df_data.append([FAMILIES[i], "None"])
-
         if PDB:
-            PDBs = list(Uni_data["PDB"].apply(tuple).unique())
+            PDBs = list(Uni_data["PDB"].unique())
+            PDBs = [i0.split(";") for i0 in PDBs]
             print(PDBs)
             for i in range(len(PDB)):
                 found = False
@@ -357,6 +357,8 @@ def main_gui():
 
         extra_info = [count_found, len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS)]
         type_df = pd.DataFrame(type_df_data, columns=["ID", "Database"])
+        print(type_df)
+        print(extra_info)
         # PLOTS
 
         # ------------------------------------------------------------------------------------------------------------
