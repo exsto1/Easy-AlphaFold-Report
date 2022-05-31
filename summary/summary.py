@@ -75,7 +75,17 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
     pdb_ids = pdb_ids.explode('PDB')
     pdb_ids = pdb_ids.reset_index(drop=True)
     pdb_ids.rename({'Entry': 'Uniprot'}, axis=1, inplace=True)
-
+    
+    #Alphafold structures
+    #loading data 
+    
+    structure_names = [f"config/data/temp/{id}.cif" for id in uniprot_data['Entry']] 
+    parser = [PdbParser(name) for name in structure_names]
+    data = [p.mol3d_data() for p in parser]
+    styles = [create_mol3d_style(
+        d['atoms'], visualization_type='cartoon', color_element='residue'
+    ) for d in data] 
+    
     # PREPARING DATA FOR PLOTS AND SUMMARIES
     query = filename_or_queryname
     entries_found = pfam +pdb + uniprot
@@ -155,6 +165,26 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
 
     lineage_plot.update_layout(
         margin = dict(t=10, l=10, r=10, b=10)
+    )
+    
+    #Alphafold structures visualization
+    def mol_visualize(ind:int):
+    return dbc.Container(
+
+        id=f"mol-{ind}",
+        children = [
+        html.H3(f"{structure_names[ind][:-4]}"),
+
+        dashbio.Molecule3dViewer(
+            id=f"dashbio-default-molecule3d_{ind}",
+            modelData=data[ind],
+            styles=styles[ind]
+        ),
+
+        "Selection data",
+        html.Hr(),
+        html.Div(id=f"default-molecule3d-output_{ind}")
+        ],
     )
 
 
