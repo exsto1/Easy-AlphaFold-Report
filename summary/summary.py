@@ -79,9 +79,9 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
     pdb_ids.rename({'Entry': 'Uniprot'}, axis=1, inplace=True)
     
     #Alphafold structures
-    #loading data 
-    
-    structure_names = [f"config/data/temp/{id}.cif" for id in uniprot_data['Entry']] 
+    #loading data
+    ids = uniprot_data['Entry']
+    structure_names = [f"config/data/temp/{id}.cif" for id in ids] #które id odpowiadają temu co wizualizujemy???
     parser = [PdbParser(name) for name in structure_names]
     data = [p.mol3d_data() for p in parser]
     styles = [create_mol3d_style(
@@ -175,7 +175,7 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
 
         id=f"mol-{ind}",
         children = [
-        html.H3(f"{structure_names[ind][:-4]}"),
+        html.H3(f"{ids[ind]}"),
 
         dashbio.Molecule3dViewer(
             id=f"dashbio-default-molecule3d_{ind}",
@@ -476,15 +476,12 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
                 html.H3(f"AlphaFold predictions gallery", className="card-title"),
                 html.Hr(),
                 html.Br(),
-                html.H4('[przegląd top predykcji z alphafold]'),
+                html.Br(),
+                html.H4('Top Alphafold predictions'),
                 html.Br(),
                 dbc.Container(
-                    
-                    children = [
-                        html.Br(),
-                        dcc.Graph(
-                        ),
-                    ],
+                    id='mol-visualize',
+                    children = [mol_visualize(i) for i in range(len(structure_names))],
                 )
             ]
 
