@@ -5,7 +5,9 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
     import plotly.express as px
     import pandas as pd
 
-
+    import dash_bio as dashbio
+    from dash_bio.utils import PdbParser, create_mol3d_style
+    from dash.dependencies import Input, Output
 
     # ARGUMENTY:
     # filename --> nazwa wejściowego pliku lub wejściowy kod
