@@ -65,6 +65,16 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
             lin_parents.append(group[0])
             lin_labels.append(group[1])
             lin_counts.append(len(groups_2[group]))
+            
+    #how many have pdb structure 
+    have_pdb = uniprot_data[uniprot_data['PDB'].notnull()]
+
+    #table with pdb structures
+    pdb_ids = uniprot_data[uniprot_data['PDB'].notnull()][['Entry', 'PDB']]
+    pdb_ids['PDB'] = pdb_ids['PDB'].apply(lambda x: x[:-1].split(";"))
+    pdb_ids = pdb_ids.explode('PDB')
+    pdb_ids = pdb_ids.reset_index(drop=True)
+    pdb_ids.rename({'Entry': 'Uniprot'}, axis=1, inplace=True)
 
     # PREPARING DATA FOR PLOTS AND SUMMARIES
     query = filename_or_queryname
@@ -347,6 +357,20 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
                 dbc.Row([dbc.Col(card) for card in uniprot_cards]),
                 html.Br(),
                 html.Br(),
+                
+                dbc.Container(
+                id='uniprot-pdb-ids',
+                children = [
+                    html.Br(),
+                    html.H4("Entries with known 3D structures"),
+                    dash_table.DataTable(
+                    data=pdb_ids.to_dict('records'),
+                    columns=[{'id': c, 'name': c} for c in pdb_ids.columns],
+                    page_action='none',
+                    style_table={'height': '300px', 'overflowY': 'auto'}
+                    ),
+                ],
+                ),
                 
                 dbc.Container(
                     id='uniprot-length',
