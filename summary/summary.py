@@ -1,9 +1,10 @@
 def generate_summary(filename, searching_summary, plddt_data, Uni_data):
 
-    from dash import Dash, html, dcc
+    from dash import Dash, html, dcc, callback, dash_table
     import dash_bootstrap_components as dbc
     import plotly.express as px
     import pandas as pd
+    import plotly.graph_objects as go
 
     import dash_bio as dashbio
     from dash_bio.utils import PdbParser, create_mol3d_style
@@ -171,23 +172,23 @@ def generate_summary(filename, searching_summary, plddt_data, Uni_data):
     
     #Alphafold structures visualization
     def mol_visualize(ind:int):
-    return dbc.Container(
+        return dbc.Container(
 
-        id=f"mol-{ind}",
-        children = [
-        html.H3(f"{ids[ind]}"),
+            id=f"mol-{ind}",
+            children = [
+            html.H3(f"{ids[ind]}"),
 
-        dashbio.Molecule3dViewer(
-            id=f"dashbio-default-molecule3d_{ind}",
-            modelData=data[ind],
-            styles=styles[ind]
-        ),
+            dashbio.Molecule3dViewer(
+                id=f"dashbio-default-molecule3d_{ind}",
+                modelData=data[ind],
+                styles=styles[ind]
+            ),
 
-        "Selection data",
-        html.Hr(),
-        html.Div(id=f"default-molecule3d-output_{ind}")
-        ],
-    )
+            "Selection data",
+            html.Hr(),
+            html.Div(id=f"default-molecule3d-output_{ind}")
+            ],
+        )
 
 
     # SECTION COMPONENTS
