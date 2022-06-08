@@ -16,7 +16,7 @@ from config.scripts.version_control import *
 from summary.summary import generate_summary
 
 
-def main_non_gui(input_p, SUMMARY_PATH, download):
+def main_non_gui(input_p, download):
     print("""
 ---+############################+---
       ~~~~ Easy AlphaFold ~~~~       
@@ -24,18 +24,22 @@ def main_non_gui(input_p, SUMMARY_PATH, download):
 """)
     ver_check()
 
+    section_lengths = [0, 0]
     IDS = []
-    with open(input_p, "r") as ff:
-        IDS.extend(ff.read().strip().split("\n"))
+    if os.path.exists(input_p):
+        section_lengths = [1, 0]
+        with open(input_p, "r") as ff:
+            IDS.extend(ff.read().strip().split("\n"))
+    else:
+        section_lengths = [0, 1]
+        IDS.append(input_p)
 
     if not IDS:
         print("ERROR! No input detected! Make sure you picked correct files!")
 
-
     FAMILIES, PDB, UNIPROT = input_parse(IDS)
     print(f"""Parameters
 Input file                     | {input_p}
-Output file                    | {output_path}
 Download                       | {download}""")
     print("------------------------------------")
     print(f"""Found data:
@@ -159,8 +163,8 @@ Gathering data and preparing summary...""")
     plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
     
     # PLOTS
-
-    generate_summary(SUMMARY_PATH, extra_info, plddt_data, Uni_data)
+    SUMMARY_PATH = "https://127.0.0.1:8052"
+    generate_summary(section_lengths, extra_info, plddt_data, Uni_data)
 
     # Generate summary
     print("\nProgram finished!")
@@ -366,9 +370,11 @@ def main_gui():
         insert_message("Preparing summary")
         root.update()
 
-        SUMMARY_PATH = "test.html"
+        SUMMARY_PATH = "https://127.0.0.1:8052"
+
+        section_lengths = [len(i0) for i0 in data]
         # PLOTS
-        generate_summary(SUMMARY_PATH, extra_info, plddt_data, Uni_data)
+        generate_summary(section_lengths, extra_info, plddt_data, Uni_data)
         # Generate summary
         progress["value"] += 5
         insert_message("Done!")
@@ -469,21 +475,19 @@ def main_gui():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", help="Input")
-    parser.add_argument("-o", help="Output")
     parser.add_argument("-g", help="GUI [True]", action="store_false")
     parser.add_argument("-d", help="Download [False]", action="store_true")
     args = parser.parse_args()
 
     input_path = args.i
-    output_path = args.o
     gui = args.g
     download = args.d
 
     if gui:
         main_gui()
     else:
-        if not input_path or not output_path:
-            print("Please provide input and output filepath!")
+        if not input_path:
+            print("Please provide input filepath!")
             exit(1)
         else:
-            main_non_gui(input_path, output_path, download)
+            main_non_gui(input_path, download)
