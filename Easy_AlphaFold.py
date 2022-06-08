@@ -163,7 +163,7 @@ Gathering data and preparing summary...""")
     generate_summary(SUMMARY_PATH, extra_info, plddt_data, Uni_data)
 
     # Generate summary
-    print("Program finished!")
+    print("\nProgram finished!")
     
     
 def main_gui():
