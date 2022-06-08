@@ -22,6 +22,17 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
+    ####### ------------------------------------------------------------------------------------------------
+    # LICZENIE DŁUGOŚCI
+    section_length = [len(i) for i in filename]
+    total_section_length = sum(section_length)
+
+    ######  ^^^ total section length 1 gdy będzie dokładnie jeden plik/ID z okienka/terminala
+    ####### ------------------------------------------------------------------------------------------------
+
+
+
+
 
 
     app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])

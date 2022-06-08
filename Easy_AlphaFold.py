@@ -24,14 +24,14 @@ def main_non_gui(input_p, download):
 """)
     ver_check()
 
-    section_lengths = [0, 0]
+    sections = [[], []]
     IDS = []
     if os.path.exists(input_p):
-        section_lengths = [1, 0]
+        sections = [[input_p], []]
         with open(input_p, "r") as ff:
             IDS.extend(ff.read().strip().split("\n"))
     else:
-        section_lengths = [0, 1]
+        sections = [[], [input_p]]
         IDS.append(input_p)
 
     if not IDS:
@@ -164,7 +164,7 @@ Gathering data and preparing summary...""")
     
     # PLOTS
     SUMMARY_PATH = "https://127.0.0.1:8052"
-    generate_summary(section_lengths, extra_info, plddt_data, Uni_data)
+    generate_summary(sections, extra_info, plddt_data, Uni_data)
 
     # Generate summary
     print("\nProgram finished!")
@@ -372,9 +372,8 @@ def main_gui():
 
         SUMMARY_PATH = "https://127.0.0.1:8052"
 
-        section_lengths = [len(i0) for i0 in data]
         # PLOTS
-        generate_summary(section_lengths, extra_info, plddt_data, Uni_data)
+        generate_summary(data, extra_info, plddt_data, Uni_data)
         # Generate summary
         progress["value"] += 5
         insert_message("Done!")
