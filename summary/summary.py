@@ -119,13 +119,18 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     pdb_ids = pdb_ids.reset_index(drop=True)
     pdb_ids.rename({'Entry': 'Uniprot'}, axis=1, inplace=True)
 
+    #Alphafold
+    get mean plddt values 
+    structures = plddt_data.sort_values(by=['mean_plddt'], ascending=False)[['IDs', 'mean_plddt']]
+    structures_50 = structures[:50]
     
-    
+    parser = [PdbParser(name) for name in structures_50['IDs']]
+    data = [p.mol3d_data() for p in parser]
+    styles = [create_mol3d_style(
+        d['atoms'], visualization_type='cartoon', color_element='residue'
+    ) for d in data] 
     
     ### preprocessing end ###
-
-
-
 
 
     #############################################
@@ -225,7 +230,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                         dbc.Card(
                             [
                                 html.P("Molecule ID", className="card-text"),
-                                html.H4(f"{structure_names[ind][:-4]}", className="card-title"),
+                                html.H4(f"{structures_50['IDs'][ind]}", className="card-title"),
                             ],
                             body=True,
                             color="dark",
@@ -236,7 +241,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                         dbc.Card(
                             [
                                 html.P("Mean pLDDT value:", className="card-text"),
-                                html.H4(f"{round(plddt_data['mean_plddt'][ind], 2)}", className="card-title"),   
+                                html.H4(f"{round(structures_50['mean_plddt'][ind], 2)}", className="card-title"),   
                             ],
                             body=True,
                             color="light",
@@ -585,7 +590,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
         fluid = False
     )
     
-    for i in range(len(structure_names)):
+    for i in range(len(structures_50.shape[0])):
 
         @app.callback(
             Output(f'default-molecule3d-output_{i}', 'children'),
