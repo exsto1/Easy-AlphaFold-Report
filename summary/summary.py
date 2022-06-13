@@ -135,7 +135,10 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     #Alphafold
     get mean plddt values 
     structures = plddt_data.sort_values(by=['mean_plddt'], ascending=False)[['IDs', 'mean_plddt']]
-    structures_50 = structures[:50]
+    if structures.shape[0] < 50:
+        structures_50 = structures
+    else:
+        structures_50 = structures[:50]
     
     parser = [PdbParser(name) for name in structures_50['IDs']]
     data = [p.mol3d_data() for p in parser]
