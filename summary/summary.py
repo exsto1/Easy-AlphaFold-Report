@@ -523,6 +523,36 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                         ],
                     ),
                 
+                dbc.Row([
+                    dbc.Col(
+                        dbc.Container(
+                            id='uniprot-pfam-count',
+                            children = [
+                                html.Br(),
+                                html.H4("Number of Pfam domains"),
+                                dcc.Graph(
+                                    id='n_of_domains_hist',
+                                    figure=n_of_domains_hist
+                                    ),
+                                ],
+                            ),
+                    ),
+                    dbc.Col(
+                        dbc.Container(
+                            id='uniprot-top10-pfam',
+                            children = [
+                                html.Br(),
+                                html.H4("Most frequent Pfam domains"),
+                                dcc.Graph(
+                                    id='pfam-domains',
+                                    figure=pfam_domains
+                                    ),
+                                ],
+                            ),
+
+                    )
+                ]),
+                
                 dbc.Container(
                     id='uniprot-lineage',
                     children = [
