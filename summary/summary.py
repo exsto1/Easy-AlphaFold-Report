@@ -118,7 +118,20 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     pdb_ids = pdb_ids.explode('PDB')
     pdb_ids = pdb_ids.reset_index(drop=True)
     pdb_ids.rename({'Entry': 'Uniprot'}, axis=1, inplace=True)
+    
+    #Pfam
+    #Number of Pfam domains per structure
+    n_of_domains = uniprot_data[['Entry', 'Pfam']]
+    n_of_domains = n_of_domains.fillna(0)
+    n_of_domains['Pfam'] = n_of_domains['Pfam'].map(lambda x: len(x[:-1].split(";")) if x!=0 else 0)
 
+    #Most frequent Pfam domains
+    pfam_ids = uniprot_data[uniprot_data['Pfam'].notnull()][['Entry', 'Pfam']]
+    pfam_ids['Pfam'] = pfam_ids['Pfam'].apply(lambda x: x[:-1].split(";"))
+    pfam_ids = pfam_ids.explode('Pfam')
+    pfam_ids = pfam_ids['Pfam'].value_counts().rename_axis('Pfam domain').reset_index(name='Counts')
+    pfam_ids = pfam_ids[pfam_ids['Counts']>1]
+    
     #Alphafold
     get mean plddt values 
     structures = plddt_data.sort_values(by=['mean_plddt'], ascending=False)[['IDs', 'mean_plddt']]
@@ -205,7 +218,17 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     len_plot.update_xaxes(automargin=True)
     len_plot.update_yaxes(automargin=True)
     len_plot.update_layout(title='Protein length distibution',yaxis_title="Number of amino acids", xaxis_title="Count")
-
+    
+    #Number of Pfam domains per structure
+    n_of_domains_hist = go.Figure()
+    n_of_domains_hist.add_trace(go.Histogram(x=n_of_domains["Pfam domains"]))
+    n_of_domains_hist.update_layout(yaxis_title="Number of records", xaxis_title="Number of Pfam domains")
+    
+    #Most frequent Pfam domains
+    pfam_domains = go.Figure()
+    pfam_domains.add_trace(go.Histogram(histfunc="sum", y=pfam_ids['Counts'], x=pfam_ids['Pfam domain'], name="sum"))
+    pfam_domains.update_layout(yaxis_title="Number of records", xaxis_title="Pfam Domain")
+    
     #Lineage - sunburst 
     lineage_plot = go.Figure(go.Sunburst(
     labels=lin_labels,
