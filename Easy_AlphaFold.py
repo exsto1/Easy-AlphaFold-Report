@@ -13,10 +13,8 @@ from config.scripts.gather_data_from_alphafold import *
 from config.scripts.verify_input import *
 from config.scripts.batch_uniprot import *
 from config.scripts.version_control import *
-from summary.summary import generate_summary
-# from summary.summary_lista import generate_summary
-# from summary.summary_brakplikow import generate_summary
-# from summary.summary_bezstruktur import generate_summary
+# from summary.summary import generate_summary
+from summary.summary_final import generate_summary
 
 
 def main_non_gui(input_p, download):
@@ -62,7 +60,6 @@ Uniprot IDs provided           | {len(UNIPROT)}""")
     print(f"Estimated time                 | {td[0]} Hours, {td[1]} Minutes, {td[2]} Seconds")
 
     Uni_data, Uni_state = uniprot_check(pfam=FAMILIES, pdb=PDB, uniprot=UNIPROT)
-    Uni_data["PDB"] = Uni_data.apply(lambda row: [i for i in row["PDB"].split(";") if i], axis=1)
 
     if not Uni_state:
         print("Error: Empty report.")
