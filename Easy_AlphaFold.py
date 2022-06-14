@@ -164,7 +164,7 @@ Gathering data and preparing summary...""")
     
     # PLOTS
     SUMMARY_PATH = "https://127.0.0.1:8052"
-    generate_summary(sections, extra_info, plddt_data, Uni_data)
+    generate_summary(sections, extra_info, plddt_data, type_df, Uni_data)
 
     # Generate summary
     print("\nProgram finished!")
@@ -373,7 +373,7 @@ def main_gui():
         SUMMARY_PATH = "https://127.0.0.1:8052"
 
         # PLOTS
-        generate_summary(data, extra_info, plddt_data, Uni_data)
+        generate_summary(data, extra_info, plddt_data, type_df, Uni_data)
         # Generate summary
         progress["value"] += 5
         insert_message("Done!")
