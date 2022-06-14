@@ -291,14 +291,15 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
         return html.Div(
             id="tabs",
             className="tabs",
+
             children=[
-
-
+                
                 dcc.Tabs(
                     id="app-tabs",
                     value="tab1",
                     className="custom-tabs",
                     children=[
+                        
                         dcc.Tab(
                             id="general-summary-tab",
                             label="General Summary",
@@ -319,7 +320,16 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                             className="custom-tab",
                             children =[
                                 build_alphafold_summary_section(),
+                            ],
+                        ),
 
+                        dcc.Tab(
+                            id="alphafold_hyperlinks",
+                            label="AlphaFold Links",
+                            value="tab3",
+                            className="custom-tab",
+                            children =[
+                                build_alphafold_links(),
                             ],
                         ),
                     ],
@@ -443,6 +453,29 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
             ]
 
             )
+
+
+
+    ###############################
+    # do kontenera w tej funkcji wstawiamy rzeczy, które mają pojawiać się w trzeciej zakładce
+    # (można też dopisać więcej funkcji zwracających rzeczy do tej zakładki -- każdą wtedy trzeba podlinkować w zakładce 3 (id="alphafold_hyperlinks"))
+    ##############################
+    def build_alphafold_links():
+        return dbc.Container(
+            id="alpha-fold-links",
+            children=[
+                html.H3(f"Tutaj linki", className="card-title"),
+                html.Hr(),
+                html.Br(),
+                html.H4('[click click]'),
+                html.A('AlphaFold', href = 'https://alphafold.ebi.ac.uk'),
+                html.Br(),
+                dbc.Container(
+
+                ),
+            ],
+
+        )
 
 
     ########################################################
