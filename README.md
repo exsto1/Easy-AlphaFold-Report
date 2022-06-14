@@ -37,6 +37,16 @@ for PDB files).
 
 ----------------------------------
 
+## Installation
+
+Package tested on Ubuntu using Conda under Python 3.7.
+Installation can be completed using 2 commands below:
+
+```
+conda env create -f environment.yml 
+conda activate Easy-AlphaFold-Report-env
+```
+
 ## Usage
 
 For the basic version with GUI user needs to simply run the main python script:
@@ -61,7 +71,6 @@ the same script as a base - but with manual flags:
 |------|-------|--------------------------------------|
 | -g   | BOOL  | Open in GUI mode (DEF: True)         |
 | -i   | PATH  | Input (path to file - 1 ID per line) |
-| -o   | PATH  | Output (path to summary file)        | 
 | -d   | BOOL  | Download (DEF: False)                |
 
 
@@ -73,6 +82,7 @@ the same script as a base - but with manual flags:
 Easy-AlphaFold-Report    
  ├─ Easy_AlphaFold.py (main function)    
  ├─ README.md    
+ ├─ environment.yml    
  └─ config     
      ├─ data
      │   ├─ AlphaFold_metadata.txt
@@ -86,10 +96,17 @@ Easy-AlphaFold-Report
      │   ├─ icon.png / icon.ico
      │   └─ Pfam.version
      │
-     └─ scripts
-         ├─ check_alphafold.py
-         ├─ gather_data_from_alphafold.py
-         ├─ testing.py (basic tests for error collection)
-         ├─ verify_input.py
-         └─ version_control.py
+     ├─ scripts
+     │   ├─ check_alphafold.py
+     │   ├─ gather_data_from_alphafold.py
+     │   ├─ testing.py (basic tests for error collection)
+     │   ├─ verify_input.py
+     │   └─ version_control.py
+     │
+     ├─ summary
+     │   └─ summary.py
+     │
+     └─ presentation
+         ├─ presentation.tex
+         └─ presentation.pdf
 ```
