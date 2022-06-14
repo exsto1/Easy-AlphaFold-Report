@@ -133,6 +133,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
     #Most frequent Pfam domains
     pfam_ids = uniprot_data[uniprot_data['Pfam'].notnull()][['Entry', 'Pfam']]
+    pfam_ids = pfam_ids[pfam_ids['Pfam'].astype(bool)]
     pfam_ids = pfam_ids.explode('Pfam')
     pfam_ids = pfam_ids['Pfam'].value_counts().rename_axis('Pfam domain').reset_index(name='Counts')
     pfam_ids = pfam_ids[pfam_ids['Counts']>=1]
