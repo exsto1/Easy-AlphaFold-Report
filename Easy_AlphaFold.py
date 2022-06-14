@@ -13,7 +13,10 @@ from config.scripts.gather_data_from_alphafold import *
 from config.scripts.verify_input import *
 from config.scripts.batch_uniprot import *
 from config.scripts.version_control import *
-from summary.summary import generate_summary
+# from summary.summary import generate_summary
+from summary.summary_lista import generate_summary
+# from summary.summary_brakplikow import generate_summary
+# from summary.summary_bezstruktur import generate_summary
 
 
 def main_non_gui(input_p, download):
@@ -163,11 +166,17 @@ Gathering data and preparing summary...""")
     plddt_data = gather_alphafold_data(ALPHA_IDS, save=download)
     
     # PLOTS
-    SUMMARY_PATH = "https://127.0.0.1:8052"
+    SUMMARY_PATH = "http://127.0.0.1:8052"
+
+    print("\n\n\n-------------------------------------------------------------------------------")
+    print("Please open this link in your browser to access the report http://127.0.0.1:8052")
+    print("After finshing window can be safely closed.")
+    print("-------------------------------------------------------------------------------\n\n\n")
+
     generate_summary(sections, extra_info, plddt_data, type_df, Uni_data)
 
     # Generate summary
-    print("\nProgram finished!")
+    print("\nProgram finished! Raport available under: http://127.0.0.1:8052")
     
     
 def main_gui():
@@ -367,11 +376,18 @@ def main_gui():
         # PLOTS
 
         # ------------------------------------------------------------------------------------------------------------
-
-        insert_message("Preparing summary")
+        insert_message(" ")
+        insert_message(" ")
+        insert_message("---------------------------------------------")
+        insert_message("Please open this link in your browser to access the report http://127.0.0.1:8052")
+        insert_message("After finshing window can be safely closed.")
+        insert_message("---------------------------------------------")
+        insert_message(" ")
+        insert_message(" ")
         root.update()
 
-        SUMMARY_PATH = "https://127.0.0.1:8052"
+        SUMMARY_PATH = "http://127.0.0.1:8052"
+
 
         # PLOTS
         generate_summary(orig_data, extra_info, plddt_data, type_df, Uni_data)
