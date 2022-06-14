@@ -126,7 +126,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     have_pdb = uniprot_data[uniprot_data['PDB'].notnull()]
 
     #table with pdb structures
-    pdb_ids = uniprot_data[uniprot_data['PDB']!= []][['Entry', 'PDB']]
+    pdb_ids = uniprot_data[uniprot_data['PDB'].astype(bool)][['Entry', 'PDB']]
     pdb_ids = pdb_ids.explode('PDB')
     pdb_ids = pdb_ids.reset_index(drop=True)
     pdb_ids.rename({'Entry': 'Uniprot'}, axis=1, inplace=True)
