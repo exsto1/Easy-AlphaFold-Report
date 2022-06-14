@@ -13,7 +13,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
     # ARGUMENTY:
-    # filename --> nazwa wejściowego pliku lub wejściowy kod
+    # #filename --> [[ids],[paths]] # always 2 lists, one may be empty
     # extra_info = [count_found, len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS)]
     # plddt_data --> "IDs": str | "pLDDT": List(float)
     # uni_data
@@ -36,19 +36,12 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     ########################################################
     # DATA PREPROCESSING
 
-
-    ####### ------------------------------------------------------------------------------------------------
-    # LICZENIE DŁUGOŚCI
-    #filename -- lista[[ID],[scieżki]] # zawsze dwie 
+    ### Gosia -- preprocessing ###
+    
+    #checking if there was one id/filename or more
     sections_lengths = [len(i) for i in filename]
     total_section_length = sum(sections_lengths)
-
-    ######  ^^^ total section length 1 gdy będzie dokładnie jeden plik/ID z okienka/terminala
-    ####### ------------------------------------------------------------------------------------------------
-
-
-
-    ### Gosia -- preprocessing ###
+    #^^^total_section_length ==1 if exactly one file/ID from gui/console
 
     # database entries counts
     pfam = (type_df.Database.values == "Pfam").sum()
