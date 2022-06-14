@@ -200,6 +200,7 @@ def main_gui():
         root.update()
 
         # ------------------------------------------------------------------------------------------------------------
+        orig_data = [data[0][:], data[1][:]]
 
         IDS = data[1]
         FILES = data[0]
@@ -373,7 +374,7 @@ def main_gui():
         SUMMARY_PATH = "https://127.0.0.1:8052"
 
         # PLOTS
-        generate_summary(data, extra_info, plddt_data, type_df, Uni_data)
+        generate_summary(orig_data, extra_info, plddt_data, type_df, Uni_data)
         # Generate summary
         progress["value"] += 5
         insert_message("Done!")
