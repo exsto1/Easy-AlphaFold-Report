@@ -468,9 +468,9 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
         new_data = plddt_data[["IDs", "mean_plddt"]]
         new_data = new_data.sort_values(by="mean_plddt", ascending=False)
         new_data = new_data.reset_index(drop=True)
-        new_data["link"] = new_data.apply(lambda row: f"https://alphafold.ebi.ac.uk/entry/{row['IDs']}", axis=1)
-
-
+        new_data["link"] = new_data.apply(lambda row: f'https://alphafold.ebi.ac.uk/entry/{row["IDs"]}', axis=1)
+        new_data["link_markdown"] = new_data.apply(lambda row: f'[{row["IDs"]}](https://alphafold.ebi.ac.uk/entry/{row["IDs"]})',
+                                          axis=1)
 
 
         return dbc.Container(
@@ -479,7 +479,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                 html.H3(f"Tutaj linki", className="card-title"),
                 html.Hr(),
                 html.Br(),
-                html.H4('[click click]'),
+                html.H4(f'<a href="https://alphafold.ebi.ac.uk/">link text</a>'),
                 html.A('AlphaFold', href = 'https://alphafold.ebi.ac.uk'),
                 html.Br(),
                 dbc.Container(
