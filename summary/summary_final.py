@@ -70,12 +70,12 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     ### Maria preprocessing ####
 
     structures = plddt_data.sort_values(by=['mean_plddt'], ascending=False)[['IDs', 'mean_plddt']]
-    if structures.shape[0] < 50:
-        structures_50 = pd.concat([structures[:1], structures[-1:], structures[1:-1]])
+    if structures.shape[0] < 10:
+        structures_viz = pd.concat([structures[:1], structures[-1:], structures[1:-1]])
     else:
-        structures_50 = pd.concat([structures[:1], structures[-1:], structures[1:50]])
+        structures_viz = pd.concat([structures[:1], structures[-1:], structures[1:10]])
     
-    parser = [PdbParser(f"config/data/temp/{name}.cif") for name in structures_50['IDs']]
+    parser = [PdbParser(f"config/data/temp/{name}.cif") for name in structures_viz['IDs']]
     data = [p.mol3d_data() for p in parser]
     styles = [create_mol3d_style(
         d['atoms'], visualization_type='cartoon', color_element='residue'
@@ -729,7 +729,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                 html.Br(),
                 dbc.Container(
                     id='mol-visualize',
-                    children = [mol_visualize(i) for i in range(structures_50.shape[0])],
+                    children = [mol_visualize(i) for i in range(structures_viz.shape[0])],
                 )
             ]
 
@@ -791,7 +791,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
         fluid = False
     )
 
-    for i in range(structures_50.shape[0]):
+    for i in range(structures_viz.shape[0]):
 
         @app.callback(
             Output(f'default-molecule3d-output_{i}', 'children'),
