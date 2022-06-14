@@ -461,6 +461,18 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     # (można też dopisać więcej funkcji zwracających rzeczy do tej zakładki -- każdą wtedy trzeba podlinkować w zakładce 3 (id="alphafold_hyperlinks"))
     ##############################
     def build_alphafold_links():
+
+        # PD DATAFRAME
+        # IDs | mean_plddt | link
+
+        new_data = plddt_data[["IDs", "mean_plddt"]]
+        new_data = new_data.sort_values(by="mean_plddt", ascending=False)
+        new_data = new_data.reset_index(drop=True)
+        new_data["link"] = new_data.apply(lambda row: f"https://alphafold.ebi.ac.uk/entry/{row['IDs']}", axis=1)
+
+
+
+
         return dbc.Container(
             id="alpha-fold-links",
             children=[

@@ -13,8 +13,8 @@ from config.scripts.gather_data_from_alphafold import *
 from config.scripts.verify_input import *
 from config.scripts.batch_uniprot import *
 from config.scripts.version_control import *
-# from summary.summary import generate_summary
-from summary.summary_lista import generate_summary
+from summary.summary import generate_summary
+# from summary.summary_lista import generate_summary
 # from summary.summary_brakplikow import generate_summary
 # from summary.summary_bezstruktur import generate_summary
 
