@@ -62,9 +62,7 @@ def uniprot_quick_check(pfam=None, pdb=None, uniprot=None):
             number, r_time = quick_check_func(i, 'uniprot')
             combined_number += number
 
-    combined_number = combined_number * 1.5
-
-    return combined_number, r_time
+    return combined_number, r_time * 1.5
 
 
 def uniprot_downloader(IDS: str, database_type: str):

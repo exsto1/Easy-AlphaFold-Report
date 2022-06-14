@@ -476,12 +476,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", help="Input")
     parser.add_argument("-g", help="GUI [True]", action="store_false")
-    parser.add_argument("-d", help="Download [False]", action="store_true")
     args = parser.parse_args()
 
     input_path = args.i
     gui = args.g
-    download = args.d
+    download = True
 
     if gui:
         main_gui()
