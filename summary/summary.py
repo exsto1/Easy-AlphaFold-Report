@@ -1,16 +1,19 @@
 def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
-    from dash import Dash, html, dcc
+    from dash import Dash, html, dcc, dash_table
     import dash_bootstrap_components as dbc
     import plotly.express as px
+    import plotly.graph_objects as go
     import pandas as pd
     from statistics import mean
 
-    from dash import dash_table
+    import dash_bio as dashbio
+    from dash_bio.utils import PdbParser, create_mol3d_style
+    from dash.dependencies import Input, Output
 
 
     # ARGUMENTY:
-    # filename --> nazwa wejściowego pliku lub wejściowy kod
+    # #filename --> [[ids],[paths]] # always 2 lists, one may be empty
     # extra_info = [count_found, len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS)]
     # plddt_data --> "IDs": str | "pLDDT": List(float)
     # uni_data
@@ -33,19 +36,12 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     ########################################################
     # DATA PREPROCESSING
 
-
-    ####### ------------------------------------------------------------------------------------------------
-    # LICZENIE DŁUGOŚCI
-    #filename -- lista[[ID],[scieżki]] # zawsze dwie 
+    ### Gosia -- preprocessing ###
+    
+    #checking if there was one id/filename or more
     sections_lengths = [len(i) for i in filename]
     total_section_length = sum(sections_lengths)
-
-    ######  ^^^ total section length 1 gdy będzie dokładnie jeden plik/ID z okienka/terminala
-    ####### ------------------------------------------------------------------------------------------------
-
-
-
-    ### Gosia -- preprocessing ###
+    #^^^total_section_length ==1 if exactly one file/ID from gui/console
 
     # database entries counts
     pfam = (type_df.Database.values == "Pfam").sum()
@@ -78,6 +74,90 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
+
+
+    ### Maria preprocessing ####
+
+    structures = plddt_data.sort_values(by=['mean_plddt'], ascending=False)[['IDs', 'mean_plddt']]
+    if structures.shape[0] < 50:
+        structures_50 = pd.concat([structures[:1], structures[-1:], structures[1:-1]])
+    else:
+        structures_50 = pd.concat([structures[:1], structures[-1:], structures[1:50]])
+    
+    parser = [PdbParser(f"config/data/temp/{name}.cif") for name in structures_50['IDs']]
+    data = [p.mol3d_data() for p in parser]
+    styles = [create_mol3d_style(
+        d['atoms'], visualization_type='cartoon', color_element='residue'
+    ) for d in data] 
+
+    uniprot_data = uni_data
+    
+    #Uniprot - length
+    uniprot_data['Length'] = [int(x) for x in uniprot_data['Length']]
+    #number structures found
+    num_of_str = uniprot_data.shape[0]
+    #percent of reviewed structures 
+    rev_perc = (uniprot_data[uniprot_data['Reviewed']=='reviewed'].shape[0]/uniprot_data.shape[0])*100
+    #average protein length 
+    avg_len = uniprot_data["Length"].mean()
+    
+    #Lineage
+    lineage_data = uniprot_data[['Superkingdom', 'Genus']]
+    lineage_data = lineage_data.fillna('Unclassified')
+    lineage_data.loc[lineage_data['Genus'] == "", "Genus"] = "Unclassified"
+    lineage_data.loc[lineage_data['Superkingdom'] == "", "Superkingdom"] = "Unclassified"
+
+    lin_parents = []
+    lin_labels = []
+    lin_counts = []
+
+    groups_1 = lineage_data.groupby(['Superkingdom']).groups
+    for group in groups_1:
+        lin_parents.append("")
+        lin_labels.append(group)
+        lin_counts.append(len(groups_1[group]))
+    groups_2 = lineage_data.groupby(['Superkingdom', 'Genus']).groups
+    for group in groups_2: 
+        if group[0] != 'Unclassified':
+            lin_parents.append(group[0])
+            lin_labels.append(group[1])
+            lin_counts.append(len(groups_2[group]))
+    
+    #PDB - ids
+    #how many have pdb structure 
+    have_pdb = uniprot_data[uniprot_data['PDB'].notnull()]
+
+    #table with pdb structures
+    pdb_ids = uniprot_data[uniprot_data['PDB']!= ""][['Entry', 'PDB']]
+    pdb_ids['PDB'] = pdb_ids['PDB'].apply(lambda x: x[:-1].split(";"))
+    pdb_ids = pdb_ids.explode('PDB')
+    pdb_ids = pdb_ids.reset_index(drop=True)
+    pdb_ids.rename({'Entry': 'Uniprot'}, axis=1, inplace=True)
+    
+    #Pfam
+    #Number of Pfam domains per structure
+    n_of_domains = uniprot_data[['Entry', 'Pfam']]
+    n_of_domains = n_of_domains.fillna(0)
+    n_of_domains['Pfam'] = n_of_domains['Pfam'].map(lambda x: len(x) if x!=0 else 0)
+
+    #Most frequent Pfam domains
+    pfam_ids = uniprot_data[uniprot_data['Pfam'].notnull()][['Entry', 'Pfam']]
+    pfam_ids = pfam_ids.explode('Pfam')
+    pfam_ids = pfam_ids['Pfam'].value_counts().rename_axis('Pfam domain').reset_index(name='Counts')
+    pfam_ids = pfam_ids[pfam_ids['Counts']>=1]
+
+    ### Maria preprocessing end ####
+
+
+
+
+
+
+
+
+
+
+
     #############################################
     # GENERATING PLOTS
 
@@ -95,7 +175,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     #mean plddt histogram
     plddt_means_histogram = px.histogram(plddt_data,
                                         x="mean_plddt",
-                                        title="Mean pLDDT values in AlphaFold predictions")
+                                        title="Histogram of mean pLDDT in AlphaFold predictions")
     plddt_means_histogram.update_xaxes(range=[round(min(plddt_data["mean_plddt"])-0.5,0) - 1, round(max(plddt_data["mean_plddt"])+0.5,0) + 1])
     plddt_means_histogram.update_yaxes(automargin=True)
     plddt_means_histogram.update_layout(
@@ -137,6 +217,197 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
+
+
+
+
+
+
+
+
+    ### Generating plots - Maria ###
+
+    def pdb_table():
+        if pdb_ids.shape[0] != 0:
+            return dash_table.DataTable(
+                        data=pdb_ids.to_dict('records'),
+                        columns=[{'id': c, 'name': c} for c in pdb_ids.columns],
+                        page_action='none',
+                        style_cell={'textAlign': 'left'},
+                        style_table={'height': '300px', 'overflowY': 'auto'},
+                        style_header={
+                            'backgroundColor': 'rgb(30, 30, 30)',
+                            'color': 'white'
+                        }
+                    )
+        else: 
+            return  html.H5("No entries with known 3D structures")
+
+    #Protein lengths plots
+
+    len_plot = go.Figure()
+    len_plot.add_trace(go.Histogram(y=uniprot_data['Length']))
+
+    len_plot.update_xaxes(automargin=True)
+    len_plot.update_yaxes(automargin=True)
+    len_plot.update_layout(title='Protein length distibution',yaxis_title="Number of amino acids", xaxis_title="Count")
+    
+    #Number of Pfam domains per structure
+    n_of_domains_hist = go.Figure()
+    n_of_domains_hist.add_trace(go.Histogram(x=n_of_domains["Pfam"]))
+    n_of_domains_hist.update_layout(yaxis_title="Number of records", xaxis_title="Number of Pfam domains")
+    
+    #Most frequent Pfam domains
+    pfam_domains = go.Figure()
+    pfam_domains.add_trace(go.Histogram(histfunc="sum", y=pfam_ids['Counts'], x=pfam_ids['Pfam domain'], name="sum"))
+    pfam_domains.update_layout(yaxis_title="Number of records", xaxis_title="Pfam Domain")
+    
+    #Lineage - sunburst 
+    lineage_plot = go.Figure(go.Sunburst(
+    labels=lin_labels,
+    parents=lin_parents,
+    values=lin_counts,
+    branchvalues="total",
+    ))
+    lineage_plot.update_layout(
+    margin = dict(t=10, l=10, r=10, b=10)
+    )
+
+    ### Alphafold structures visualization
+    def mol_visualize(ind:int):
+
+        if ind==0:
+
+            cards = dbc.Container(
+
+                id="best-structure",
+                children = [
+
+                    dbc.Row([
+                        dbc.Col(
+                            dbc.Card(
+                                [
+                                    html.P("Molecule with the highest pLDDT value:", className="card-text"),
+                                    html.H4(f"{structures_50['IDs'][ind]}", className="card-title"),
+                                ],
+                                body=True,
+                                color="success",
+                                inverse=True,
+                                ),
+                        ),
+                        dbc.Col(
+                            dbc.Card(
+                                [
+                                    html.P("Mean pLDDT value:", className="card-text"),
+                                    html.H4(f"{round(structures_50['mean_plddt'][ind], 2)}", className="card-title"),   
+                                ],
+                                body=True,
+                                color="light",
+                                inverse=False,
+                                ),
+                        ),
+                    ]),
+                ]
+            )
+        
+        elif ind==1:
+
+            cards = dbc.Container(
+
+                id="worst-structure",
+                children = [
+
+                    dbc.Row([
+                        dbc.Col(
+                            dbc.Card(
+                                [
+                                    html.P("Molecule with the lowest pLDDT value:", className="card-text"),
+                                    html.H4(f"{structures_50['IDs'][ind]}", className="card-title"),
+                                ],
+                                body=True,
+                                color="danger",
+                                inverse=True,
+                                ),
+                        ),
+                        dbc.Col(
+                            dbc.Card(
+                                [
+                                    html.P("Mean pLDDT value:", className="card-text"),
+                                    html.H4(f"{round(structures_50['mean_plddt'][ind], 2)}", className="card-title"),   
+                                ],
+                                body=True,
+                                color="light",
+                                inverse=False,
+                                ),
+                        ),
+                    ]),
+                ]
+            )
+        
+        else:
+
+            cards = dbc.Container(
+                dbc.Row([
+
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                html.P("Molecule ID", className="card-text"),
+                                html.H4(f"{structures_50['IDs'][ind]}", className="card-title"),
+                            ],
+                            body=True,
+                            color="dark",
+                            inverse=True,
+                            ),
+                    ),
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                html.P("Mean pLDDT value:", className="card-text"),
+                                html.H4(f"{round(structures_50['mean_plddt'][ind], 2)}", className="card-title"),   
+                            ],
+                            body=True,
+                            color="light",
+                            inverse=False,
+                            ),
+
+                    ),
+                ]),
+            )
+
+
+        result = dbc.Container(
+
+            id=f"mol-{ind}",
+            children = [
+
+            cards, 
+
+            dashbio.Molecule3dViewer(
+                id=f"dashbio-default-molecule3d_{ind}",
+                modelData=data[ind],
+                styles=styles[ind]
+            ),
+
+            "Selection data",
+            html.Hr(),
+            html.Div(id=f"default-molecule3d-output_{ind}")
+            ],
+        )
+
+        return result
+
+    #########################################################
+
+
+
+
+
+
+
+
+
+
     #########################################################
     # SECTION COMPONENTS
     # sections' summary tabs
@@ -148,8 +419,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
         query_card = dbc.Card(
                         [
-                            html.P("Results for input ID / file:\n", className="card-text"),
-                            html.P(""),
+                            html.P(["Results for input ID / file:", html.Br(), html.Br()], className="card-text"),
                             html.H4(query, className="card-title"),
                         ],
                         body=True,
@@ -159,7 +429,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     else:
         query_card = dbc.Card(
                         [
-                            html.P("Number of input IDs/files:\n", className="card-text"),
+                            html.P(["Number of input IDs/files:", html.Br()], className="card-text"),
                             html.P(""),
                             html.H4(total_section_length, className="card-title"),
                             
@@ -172,15 +442,12 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
-
-
-
     general_cards = [
         query_card,
 
         dbc.Card(
             [
-                html.P("Total number of input ID's (provided directly or in files):", className="card-text"),
+                html.P(["Total number of input ID's", html.Br(),"(provided directly or as files' content):"], className="card-text"),
                 html.H4(f"{entries_found + not_found}", className="card-title"),   
             ],
             body=True,
@@ -191,7 +458,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
         dbc.Card(
             [
-                html.P("Identifiers recognized as Pfam / UniProt / PDB entries:", className="card-text"),
+                html.P(["Identifiers recognized", html.Br(), "as Pfam / UniProt / PDB entries:"], className="card-text"),
                 html.H4(f" {entries_found} / {entries_found + not_found} ", className="card-title"),
                 
             ],
@@ -199,12 +466,20 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
             color="primary",
             inverse=True,
         ),]
-    # Gosia -- Maria -- uzupełnić zawartość kafelek
+    
+
+    
+
+
+
+
+
+    #Maria - uniprot
     uniprot_cards = [
         dbc.Card(
             [
-                html.P("Total number of UniProt entries connected with given input:", className="card-text"),
-                html.H4(f"{total_uniprot}", className="card-title"),
+                html.P("Number of structures found", className="card-text"),
+                html.H4(f"{num_of_str}", className="card-title"),
             ],
             body=True,
             color="dark",
@@ -213,8 +488,8 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
         dbc.Card(
             [
-                html.P("Info 2:", className="card-text"),
-                html.H4(f"info", className="card-title"),   
+                html.P("Percentage of reviewed structures", className="card-text"),
+                html.H4(f"{round(rev_perc, 2)}%", className="card-title"),   
             ],
             body=True,
             color="light",
@@ -224,20 +499,26 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
         dbc.Card(
             [
-                html.P("Info 3:", className="card-text"),
-                html.H4(f"info", className="card-title"),
-                
+                html.P("Average protein length:", className="card-text"),
+                html.H4(f"{round(avg_len)}", className="card-title"),
+
             ],
             body=True,
             color="light",
             inverse=False,
         ),]
-    # Gosia
+    
+
+
+
+
+   # Gosia
     alphafold_short_cards = [
         dbc.Card(
             [
                 html.P("AlphaFold predictions found for:", className="card-text"),
-                html.H4(f"{alphafold} / {total_uniprot}    UniProt structures", className="card-title"),
+                html.H4([f"{alphafold} / {total_uniprot}"], className="card-title"),
+                html.P("UniProt structures", className="card-text"),
 
             ],
             body=True,
@@ -247,7 +528,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
         dbc.Card(
             [
-                html.P("UniProt ID for structure with highest mean pLDDT:", className="card-text"),
+                html.P(["Structure with highest mean pLDDT:", html.Br() ,"[Uniprot Id : pLDDT]"], className="card-text"),
                 html.H4((f"{plddt_data.iloc[plddt_data['mean_plddt'].idxmax(),0]}:  "+ str(round(plddt_data["mean_plddt"].max(),2))), className="card-title"),   
             ],
             body=True,
@@ -258,7 +539,8 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
         dbc.Card(
             [
-                html.P("Predictions' mean pLDDT score:", className="card-text"),
+                html.P("Mean pLDDT score for found predictions:", className="card-text"),
+                html.Br(),
                 html.H4( (f" {round(mean(plddt_data['mean_plddt']),2)}" ) , className="card-title"), 
                 
             ],
@@ -342,15 +624,19 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
         )
+    
+
+
     # Gosia
     def build_general_summary():
 
         if not_found == 0:
             not_recognized_info = ""
         elif not_found ==1:
-            not_recognized_info = f"There had been: {not_found} input identifier passed directly as ID or in input files, not found in Pfam / UniProt / PDB databases."
+            not_recognized_info = f"Note: {not_found} input identifier (passed directly as ID or as input file content) was not found in any of Pfam / UniProt / PDB databases."
+            #not_recognized_info = f"There had been: {not_found} input identifier passed directly as ID or in input files, not found in Pfam / UniProt / PDB databases."
         else:
-            not_recognized_info = f"There had been: {not_found} input identifiers passed directly as ID or in input files, which were not found in Pfam / UniProt / PDB databases."
+            not_recognized_info = f"Note: {not_found} of input identifiers (passed directly as ID or as input files content) were not found in any of Pfam / UniProt / PDB databases."
 
         return dbc.Container(
             id="general-summary",
@@ -369,11 +655,22 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                             id='db-summary-graph',
                             figure=db_pie
                         ),
-                        html.P(not_recognized_info),
+                        html.B(not_recognized_info, style={'color': '#FF4000', 'fontSize': 18}), ###
+                        html.Br(),
+                        html.Br(),
+                        html.Br(),
+
 
                 ]),
         ])
-    # Maria -- uzup.
+    
+
+
+
+
+
+
+    # Maria 
     def build_uniprot_summary_section():
         return dbc.Container(
             id="uniprot-summary",
@@ -384,17 +681,70 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                 html.Br(),
                 html.Br(),
                 dbc.Container(
-                    id='uniprot-c1',
+                id='uniprot-pdb-ids',
+                children = [
+                    html.Br(),
+                    html.H4("Entries with known 3D structures"),
+                    pdb_table()
+                ],
+                ),
+            
+                dbc.Container(
+                    id='uniprot-length',
                     children = [
                         html.Br(),
-                        html.P("[Maria]"),
+                        html.H4("Protein lengths"),
+                        dcc.Graph(
+                            id='uniprot-len',
+                            figure=len_plot
+                            ),
+                        ],
+                ),
+                
+                dbc.Row([
+                    dbc.Col(
+                        dbc.Container(
+                            id='uniprot-pfam-count',
+                            children = [
+                                html.Br(),
+                                html.H4("Number of Pfam domains"),
+                                dcc.Graph(
+                                    id='n_of_domains_hist',
+                                    figure=n_of_domains_hist
+                                    ),
+                                ],
+                            ),
+                        ),
+                    dbc.Col(
+                        dbc.Container(
+                            id='uniprot-top10-pfam',
+                            children = [
+                                html.Br(),
+                                html.H4("Most frequent Pfam domains"),
+                                dcc.Graph(
+                                    id='pfam-domains',
+                                    figure=pfam_domains
+                                    ),
+                                ],
+                            ),
+                        )
+                ]),
+                
+                dbc.Container(
+                    id='uniprot-lineage',
+                    children = [
+                        html.Br(),
+                        html.H4("Lineage of the protein structures"),
                         html.Br(),
                         dcc.Graph(
-                            id='uniprot-graph1',
+                            id='uniprot-lin',
+                            figure=lineage_plot
                         ),
                     ],
                 )],
             )
+
+
 
     # Gosia
     def build_alphafold_short_summary():
@@ -417,7 +767,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                             id='alphafold_mean_plddt_per_residue',
                             children = [
                                 html.Br(),
-                                html.H4("Per-residue pLDDT"),
+                                html.H4("Mean per-residue pLDDT"),
                                 dcc.Graph(
                                     figure= mean_plddt_per_residue),
                                 ],
@@ -426,7 +776,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                             id='best-structure-plddt-per-residue',
                             children = [
                                 html.Br(),
-                                html.H4(f"Structure with maximal mean pLDDT ({plddt_data.iloc[plddt_data['mean_plddt'].idxmax(),0]}:  { round( plddt_data['mean_plddt'].max() , 2 ) })"),
+                                html.H4(f"Per-residue pLDDT in prediction with maximal mean pLDDT ({plddt_data.iloc[plddt_data['mean_plddt'].idxmax(),0]}:  { round( plddt_data['mean_plddt'].max() , 2 ) })"),
                                 dcc.Graph(
                                     figure= plddt_maxstructure),
                                 ],
@@ -434,7 +784,11 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
      
             ],)
 
-    # Maria -- uzup.
+
+
+
+
+    # Maria 
     def build_alphafold_summary_section():
         return dbc.Container(
             id="alpha-fold-predictions",
@@ -442,15 +796,11 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                 html.H3(f"AlphaFold predictions gallery", className="card-title"),
                 html.Hr(),
                 html.Br(),
-                html.H4('[przegląd top predykcji z alphafold]'),
+                html.H4('Top Alphafold predictions'),
                 html.Br(),
                 dbc.Container(
-                    
-                    children = [
-                        html.Br(),
-                        dcc.Graph(
-                        ),
-                    ],
+                    id='mol-visualize',
+                    children = [mol_visualize(i) for i in range(structures_50.shape[0])],
                 )
             ]
 
@@ -479,15 +829,13 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
             id="alpha-fold-links",
 
             children=[
-                html.H3(f"Tutaj linki", className="card-title"),
-                html.Hr(),
+                #html.Hr(),
                 html.Br(),
-                html.H4('[click click]'),
-                html.A('AlphaFold', href = 'https://alphafold.ebi.ac.uk'),
                 html.Br(),
                 dbc.Container(
                     table
                 ),
+                html.A('AlphaFold', href = 'https://alphafold.ebi.ac.uk'),
             ],
 
         )
@@ -512,6 +860,24 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
         fluid = False
     )
 
+    for i in range(structures_50.shape[0]):
+
+        @app.callback(
+            Output(f'default-molecule3d-output_{i}', 'children'),
+            Input(f'dashbio-default-molecule3d_{i}', 'selectedAtomIds')
+        )
+
+        def show_selected_atoms(atom_ids):
+            if atom_ids is None or len(atom_ids) == 0:
+                return 'No atom has been selected. Click somewhere on the molecular \
+                structure to select an atom.'
+            return [html.Div([
+                html.Div('Element: {}'.format(data[i]['atoms'][atm]['elem'])),
+                html.Div('Chain: {}'.format(data[i]['atoms'][atm]['chain'])),
+                html.Div('Residue name: {}'.format(data[i]['atoms'][atm]['residue_name'])),
+                html.Br()
+                ]) for atm in atom_ids]
 
 
-    app.run_server(debug=False, port=8052)
+
+    app.run_server(debug=True, port=8052)
