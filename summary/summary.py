@@ -12,7 +12,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     from dash.dependencies import Input, Output
 
 
-    # ARGUMENTY:
+    # ARGUMENTS:
     # #filename --> [[ids],[paths]] # always 2 lists, one may be empty
     # extra_info = [count_found, len(FAMILIES), len(PDB), len(UNIPROT), len(Uni_IDs), len(ALPHA_IDS)]
     # plddt_data --> "IDs": str | "pLDDT": List(float)
@@ -25,18 +25,12 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     #print("type_df", type_df)
 
 
-
-
-
-
     app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 
-    ########################################################
+    ######################
     # DATA PREPROCESSING
-
-    ### Gosia -- preprocessing ###
     
     #checking if there was one id/filename or more
     sections_lengths = [len(i) for i in filename]
@@ -65,18 +59,8 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     plddt_statistics.insert(loc=0,column="mean_residue_plddt", value=plddt_df.iloc[:,1:].mean(axis=0))
     plddt_statistics.insert(loc=1,column="residues_count", value=plddt_df.iloc[:,1:].count(axis=0))
 
-    ### Gosia preprocessing end ###
+    #-------------------------
 
-
-
-
-
-
-
-
-
-
-    ### Maria preprocessing ####
 
     structures = plddt_data.sort_values(by=['mean_plddt'], ascending=False)[['IDs', 'mean_plddt']]
     if structures.shape[0] < 50:
@@ -146,22 +130,13 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     pfam_ids = pfam_ids['Pfam'].value_counts().rename_axis('Pfam domain').reset_index(name='Counts')
     pfam_ids = pfam_ids[pfam_ids['Counts']>=1]
 
-    ### Maria preprocessing end ####
-
-
-
-
-
-
-
+    ###########################################
 
 
 
 
     #############################################
     # GENERATING PLOTS
-
-    ## Gosia -- plots start ##
 
     ## General summary
     #db_pie = px.pie(values=[pfam, pdb, uniprot, not_found], names=["Pfam", "PDB", "UniProt", "NotFound"], hole=0.1)
@@ -213,19 +188,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                                 yaxis_title="pLDDT",
                                 showlegend=False)
 
-    ### Gosia plots end ###
-
-
-
-
-
-
-
-
-
-
-
-    ### Generating plots - Maria ###
+    #--------------------------------------------------
 
     def pdb_table():
         if pdb_ids.shape[0] != 0:
@@ -403,15 +366,9 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
-
-
-
-
-
     #########################################################
     # SECTION COMPONENTS
     # sections' summary tabs
-    # Gosia
 
     if total_section_length == 1:
         query = filename[0][0] if len(filename[0])!=0 else filename[1][0] # query is either a single ID or single filepath 
@@ -474,7 +431,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
-    #Maria - uniprot
+    #uniprot
     uniprot_cards = [
         dbc.Card(
             [
@@ -511,8 +468,6 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
-
-   # Gosia
     alphafold_short_cards = [
         dbc.Card(
             [
@@ -553,8 +508,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
     #########################################################
     # SECTIONS 
-
-    # Gosia
+    
     def build_banner():
         return html.Div(
             id="banner",
@@ -570,7 +524,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
             ],
         )
-    # Gosia
+    
     def build_tabs():
         return html.Div(
             id="tabs",
@@ -627,7 +581,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     
 
 
-    # Gosia
+    
     def build_general_summary():
 
         if not_found == 0:
@@ -668,9 +622,6 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
-
-
-    # Maria 
     def build_uniprot_summary_section():
         return dbc.Container(
             id="uniprot-summary",
@@ -746,7 +697,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
-    # Gosia
+    
     def build_alphafold_short_summary():
         return dbc.Container(
             id="alpha-fold-short",
@@ -788,7 +739,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
-    # Maria 
+    
     def build_alphafold_summary_section():
         return dbc.Container(
             id="alpha-fold-predictions",
@@ -808,10 +759,6 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
-    ###############################
-    # do kontenera w tej funkcji wstawiamy rzeczy, które mają pojawiać się w trzeciej zakładce
-    # (można też dopisać więcej funkcji zwracających rzeczy do tej zakładki -- każdą wtedy trzeba podlinkować w zakładce 3 (id="alphafold_hyperlinks"))
-    ##############################
     def build_alphafold_links():
 
         # PD DATAFRAME
@@ -880,4 +827,4 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
 
-    app.run_server(debug=True, port=8052)
+    app.run_server(debug=False, port=8052)
