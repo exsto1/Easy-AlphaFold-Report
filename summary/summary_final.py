@@ -261,7 +261,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                             dbc.Card(
                                 [
                                     html.P("Molecule with the highest pLDDT value:", className="card-text"),
-                                    html.H4(f"{structures_50['IDs'][ind]}", className="card-title"),
+                                    html.H4(f"{structures_viz['IDs'][ind]}", className="card-title"),
                                 ],
                                 body=True,
                                 color="success",
@@ -272,7 +272,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                             dbc.Card(
                                 [
                                     html.P("Mean pLDDT value:", className="card-text"),
-                                    html.H4(f"{round(structures_50['mean_plddt'][ind], 2)}", className="card-title"),   
+                                    html.H4(f"{round(structures_viz['mean_plddt'][ind], 2)}", className="card-title"),
                                 ],
                                 body=True,
                                 color="light",
@@ -295,7 +295,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                             dbc.Card(
                                 [
                                     html.P("Molecule with the lowest pLDDT value:", className="card-text"),
-                                    html.H4(f"{structures_50['IDs'][ind]}", className="card-title"),
+                                    html.H4(f"{structures_viz['IDs'][ind]}", className="card-title"),
                                 ],
                                 body=True,
                                 color="danger",
@@ -306,7 +306,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                             dbc.Card(
                                 [
                                     html.P("Mean pLDDT value:", className="card-text"),
-                                    html.H4(f"{round(structures_50['mean_plddt'][ind], 2)}", className="card-title"),   
+                                    html.H4(f"{round(structures_viz['mean_plddt'][ind], 2)}", className="card-title"),
                                 ],
                                 body=True,
                                 color="light",
@@ -326,7 +326,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                         dbc.Card(
                             [
                                 html.P("Molecule ID", className="card-text"),
-                                html.H4(f"{structures_50['IDs'][ind]}", className="card-title"),
+                                html.H4(f"{structures_viz['IDs'][ind]}", className="card-title"),
                             ],
                             body=True,
                             color="dark",
@@ -337,7 +337,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
                         dbc.Card(
                             [
                                 html.P("Mean pLDDT value:", className="card-text"),
-                                html.H4(f"{round(structures_50['mean_plddt'][ind], 2)}", className="card-title"),   
+                                html.H4(f"{round(structures_viz['mean_plddt'][ind], 2)}", className="card-title"),
                             ],
                             body=True,
                             color="light",
