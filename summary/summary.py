@@ -63,10 +63,10 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
 
 
     structures = plddt_data.sort_values(by=['mean_plddt'], ascending=False)[['IDs', 'mean_plddt']]
-    if structures.shape[0] < 50:
+    if structures.shape[0] < 10:
         structures_50 = pd.concat([structures[:1], structures[-1:], structures[1:-1]])
     else:
-        structures_50 = pd.concat([structures[:1], structures[-1:], structures[1:50]])
+        structures_50 = pd.concat([structures[:1], structures[-1:], structures[1:10]])
     
     parser = [PdbParser(f"config/data/temp/{name}.cif") for name in structures_50['IDs']]
     data = [p.mol3d_data() for p in parser]
