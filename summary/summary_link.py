@@ -65,7 +65,7 @@ def generate_summary(filename, extra_info, plddt_data, type_df, uni_data):
     structures = plddt_data.sort_values(by=['mean_plddt'], ascending=False)[['IDs', 'mean_plddt']]
     if structures.shape[0] < 10 and structures.shape[0] > 2:
         structures_viz = pd.concat([structures[:1], structures[-1:], structures[1:-1]])
-    elif structures.shape[0]==2:
+    elif structures.shape[0]<=2:
         structures_viz = structures
     else:
         structures_viz = pd.concat([structures[:1], structures[-1:], structures[1:10]])
